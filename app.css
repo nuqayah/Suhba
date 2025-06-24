@@ -1,0 +1,22 @@
+@import "tailwindcss";
+
+/* Custom CSS for card flip animations */
+.perspective-1000 {
+  perspective: 1000px;
+}
+
+.transform-style-preserve-3d {
+  transform-style: preserve-3d;
+}
+
+.backface-hidden {
+  backface-visibility: hidden;
+}
+
+.rotate-y-180 {
+  transform: rotateY(180deg);
+}
+
+.hover\:scale-102:hover {
+  transform: scale(1.02);
+}
