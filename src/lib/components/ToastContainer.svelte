@@ -1,4 +1,4 @@
-<script lang="ts">
+<script>
   import { toastManager } from '$lib/stores/toast';
   import Toast from './Toast.svelte';
   

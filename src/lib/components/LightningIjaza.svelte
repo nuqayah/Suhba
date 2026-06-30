@@ -1,14 +1,9 @@
-<script lang="ts">
+<script>
   import { Zap, Clock, Star, Trophy, User, CheckCircle } from 'lucide-svelte';
   import { currentLanguage } from '$lib/stores/language';
   import { translations } from '$lib/stores/translations';
 
-  let { currentTheme, gameQuestions = [], players = [], onGameEnd } = $props<{
-    currentTheme: any;
-    gameQuestions: any[];
-    players: any[];
-    onGameEnd: (results: any) => void;
-  }>();
+  let { currentTheme, gameQuestions = [], players = [], onGameEnd } = $props();
 
   const t = $derived(translations[$currentLanguage.code]);
 
@@ -72,7 +67,7 @@
     }, 1000);
   }
 
-  function pressBuzzer(playerId: number) {
+  function pressBuzzer(playerId) {
     if (gamePhase !== 'question' || buzzerPressed || penaltyTime > 0) return;
     
     buzzerPressed = true;
@@ -96,7 +91,7 @@
     }, 1000);
   }
 
-  function submitAnswer(playerId: number, answerIndex: number) {
+  function submitAnswer(playerId, answerIndex) {
     if (gamePhase !== 'buzzer' || playerId !== buzzerPlayer) return;
     
     if (timer) {
@@ -139,7 +134,7 @@
     showResults(playerId, isCorrect);
   }
 
-  function showResults(playerId: number | null, isCorrect: boolean) {
+  function showResults(playerId, isCorrect) {
     if (timer) {
       clearInterval(timer);
       timer = null;
@@ -180,7 +175,7 @@
     onGameEnd(rankings);
   }
 
-  const getPlayerRank = (playerId: number) => {
+  const getPlayerRank = (playerId) => {
     const sortedScores = Object.entries(playerScores)
       .sort(([,a], [,b]) => b.score - a.score);
     return sortedScores.findIndex(([id]) => parseInt(id) === playerId) + 1;

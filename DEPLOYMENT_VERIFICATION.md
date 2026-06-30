@@ -3,7 +3,7 @@
 ## ✅ **Fixed Issues**
 
 ### **Primary Issue Fixed:**
-- **❌ Before:** `$state` rune was used in `src/lib/stores/toast.ts` causing 500 errors
+- **❌ Before:** `$state` rune was used in `src/lib/stores/toast.js` causing 500 errors
 - **✅ After:** Converted to proper Svelte writable store pattern
 
 ### **Error Resolution:**
@@ -14,17 +14,17 @@
 
 ### **Solution Applied:**
 1. **Replaced `$state` with `writable` store:**
-   ```typescript
+   ```js
    // Before (BROKEN):
    let toasts = $state<Toast[]>([]);
    
    // After (WORKING):
    import { writable } from 'svelte/store';
-   const toastsStore = writable<Toast[]>([]);
+   const toastsStore = writable([]);
    ```
 
 2. **Updated store methods:**
-   ```typescript
+   ```js
    // Updated methods to use .update() and .set()
    toastsStore.update(toasts => [...toasts, toast]);
    toastsStore.update(toasts => toasts.filter(toast => toast.id !== id));
@@ -41,7 +41,7 @@
 
 ### **Development Server:**
 ```bash
-npm run dev
+pnpm dev
 # ✅ Starts without errors on http://localhost:5174/
 # ✅ No console errors
 # ✅ No 500 internal errors
@@ -49,7 +49,7 @@ npm run dev
 
 ### **Production Build:**
 ```bash
-npm run build
+pnpm build
 # ✅ Builds successfully for Cloudflare Pages
 # ✅ Static adapter working correctly
 # ✅ Bundle optimized: ~81KB gzipped
@@ -57,7 +57,7 @@ npm run build
 
 ### **Production Preview:**
 ```bash
-npm run preview
+pnpm preview
 # ✅ Serves correctly on http://localhost:4173/
 # ✅ All functionality working
 # ✅ Toast system functional
@@ -79,7 +79,7 @@ The suhba-replica is now fully ready for deployment with:
 
 ```bash
 # Build command:
-npm run build
+pnpm build
 
 # Output directory:
 build
@@ -102,7 +102,7 @@ build
    - ✅ Responsive mobile design
 
 3. **Technical Improvements:**
-   - ✅ Proper TypeScript configuration
+   - ✅ JavaScript configuration
    - ✅ Accessibility (ARIA labels, focus management)
    - ✅ SSR-safe code patterns
    - ✅ Optimized bundle size

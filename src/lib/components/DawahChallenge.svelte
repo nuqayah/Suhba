@@ -1,13 +1,9 @@
-<script lang="ts">
+<script>
   import { MessageCircle, Users, Star, ThumbsUp, ThumbsDown, Clock, Award, Target } from 'lucide-svelte';
   import { currentLanguage } from '$lib/stores/language';
   import { translations } from '$lib/stores/translations';
 
-  let { currentTheme, players = [], onGameEnd } = $props<{
-    currentTheme: any;
-    players: any[];
-    onGameEnd: (results: any) => void;
-  }>();
+  let { currentTheme, players = [], onGameEnd } = $props();
 
   const t = $derived(translations[$currentLanguage.code]);
 
@@ -156,7 +152,7 @@
     });
   }
 
-  function submitVote(voterIndex: number, criterion: string, score: number) {
+  function submitVote(voterIndex, criterion, score) {
     if (!votes[voterIndex]) votes[voterIndex] = {};
     votes[voterIndex][criterion] = score;
     
@@ -242,13 +238,13 @@
   const getCurrentPlayer = () => players[currentPlayerIndex];
   const getVotingPlayers = () => players.filter((_, index) => index !== currentPlayerIndex);
   
-  const formatTime = (seconds: number) => {
+  const formatTime = (seconds) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const getDifficultyColor = (difficulty: string) => {
+  const getDifficultyColor = (difficulty) => {
     switch (difficulty) {
       case 'easy': return 'bg-green-500';
       case 'medium': return 'bg-yellow-500';
@@ -257,7 +253,7 @@
     }
   };
 
-  const getTargetIcon = (target: string) => {
+  const getTargetIcon = (target) => {
     switch (target) {
       case 'child': return '👧';
       case 'non-muslim': return '🤝';
@@ -342,8 +338,9 @@
       <!-- Explanation Input (only during explaining phase) -->
       {#if gamePhase === 'explaining'}
         <div class="mb-6">
-          <label class="block font-bold {currentTheme.text} mb-3">Your Explanation:</label>
+          <label for="dawah-explanation" class="block font-bold {currentTheme.text} mb-3">Your Explanation:</label>
           <textarea
+            id="dawah-explanation"
             bind:value={currentExplanation}
             placeholder="Explain the concept clearly and appropriately for your target audience..."
             class="w-full p-4 border-2 border-gray-300 rounded-xl focus:border-blue-500 focus:outline-none resize-none"

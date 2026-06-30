@@ -1,6 +1,6 @@
-<script lang="ts">
-  import { onMount } from 'svelte';
-  import { 
+<script>
+import { onMount } from 'svelte';
+import { 
     Book, User, Settings, Play, Pause, MessageCircle, ArrowLeft, 
     Check, Heart, Zap, Shield, Star, Crown, Users, Clock, 
     Trophy, RotateCcw, Lightbulb, SkipForward, Moon, Sun, 
@@ -9,372 +9,327 @@
     UserPlus, Globe, Shuffle, 
     Cog, Settings2, Wrench, ChevronLeft, ChevronRight, CornerUpLeft,
     History, Link, Layers, HelpCircle
-  } from 'lucide-svelte';
-  import { currentLanguage } from '$lib/stores/language';
-  import { translations } from '$lib/stores/translations';
-  import { newGameContent, getQuestionNames } from '$lib/gameContent';
-  import { wsManager, connectionState, roomState } from '$lib/stores/websocket';
-  import SettingsModal from '$lib/components/SettingsModal.svelte';
-  import AuthModal from '$lib/components/AuthModal.svelte';
-  import SalahTimer from '$lib/components/SalahTimer.svelte';
-  import SuhbaLogo from '$lib/components/SuhbaLogo.svelte';
-  import UserShmagh from '$lib/components/UserShmagh.svelte';
-  import UserGlasses from '$lib/components/UserGlasses.svelte';
-  import UserKeffiyeh from '$lib/components/UserKeffiyeh.svelte';
-  import SeerahTrip from '$lib/components/SeerahTrip.svelte';
-  import LastScholarStanding from '$lib/components/LastScholarStanding.svelte';
-  import LightningIjaza from '$lib/components/LightningIjaza.svelte';
-  import HadithCompletion from '$lib/components/HadithCompletion.svelte';
-  import DawahChallenge from '$lib/components/DawahChallenge.svelte';
-  import Button from '$lib/components/Button.svelte';
-  import ToastContainer from '$lib/components/ToastContainer.svelte';
-  import ConnectionStatus from '$lib/components/ConnectionStatus.svelte';
-  import InstallPrompt from '$lib/components/InstallPrompt.svelte';
-  import { toastManager } from '$lib/stores/toast';
-
-  // Reactive state using Svelte 5 runes
-  let currentScreen = $state('home');
-  let currentGame = $state(null);
-  let score = $state(0);
-  let round = $state(1);
-  let isFlipped = $state(false);
-  
-  // Generate a unique client ID for debugging
-  const clientId = Math.random().toString(36).substring(2, 8).toUpperCase();
-  console.log('🆔 Client ID:', clientId);
-  let theme = $state('desert');
-  let chillCategory = $state(null);
-  
-  // New game mode states
-  let gameMode = $state('solo');
-  let players = $state([]);
-  let currentPlayer = $state(0);
-  let teamScores = $state({});
-  let selectedDifficulty = $state('medium'); // Default to medium
-  let previousScreen = $state('modeSelector'); // Track navigation history
-  
-  // New states for modals and UI
-  let showSettings = $state(false);
-  let showAuth = $state(false);
-  let showRoomSelector = $state(false);
-  let roomCode = $state('');
-  let isRoomHost = $state(false);
-  let roomPlayers = $state([]);
-  let showCopyMessage = $state(false);
-  
-  // Loading states for better UX
-  let isCreatingRoom = $state(false);
-  let isJoiningRoom = $state(false);
-  let isLoadingGame = $state(false);
-  
-  // Language and translations - simplified to avoid store conflicts
-  const t = $derived((translations && translations[$currentLanguage.code]) ? translations[$currentLanguage.code] : {});
-  
-  // Initialize app
-  onMount(() => {
+} from 'lucide-svelte';
+import { currentLanguage } from '$lib/stores/language';
+import { translations } from '$lib/stores/translations';
+import { newGameContent, getQuestionNames } from '$lib/gameContent';
+import { wsManager, connectionState, roomState } from '$lib/stores/websocket';
+import SettingsModal from '$lib/components/SettingsModal.svelte';
+import AuthModal from '$lib/components/AuthModal.svelte';
+import SalahTimer from '$lib/components/SalahTimer.svelte';
+import SuhbaLogo from '$lib/components/SuhbaLogo.svelte';
+import UserShmagh from '$lib/components/UserShmagh.svelte';
+import UserGlasses from '$lib/components/UserGlasses.svelte';
+import UserKeffiyeh from '$lib/components/UserKeffiyeh.svelte';
+import SeerahTrip from '$lib/components/SeerahTrip.svelte';
+import LastScholarStanding from '$lib/components/LastScholarStanding.svelte';
+import LightningIjaza from '$lib/components/LightningIjaza.svelte';
+import HadithCompletion from '$lib/components/HadithCompletion.svelte';
+import DawahChallenge from '$lib/components/DawahChallenge.svelte';
+import Button from '$lib/components/Button.svelte';
+import ToastContainer from '$lib/components/ToastContainer.svelte';
+import ConnectionStatus from '$lib/components/ConnectionStatus.svelte';
+import InstallPrompt from '$lib/components/InstallPrompt.svelte';
+import { toastManager } from '$lib/stores/toast';
+// Reactive state using Svelte 5 runes
+let currentScreen = $state('home');
+let currentGame = $state(null);
+let score = $state(0);
+let round = $state(1);
+let isFlipped = $state(false);
+// Generate a unique client ID for debugging
+const clientId = Math.random().toString(36).substring(2, 8).toUpperCase();
+console.log('🆔 Client ID:', clientId);
+let theme = $state('desert');
+let chillCategory = $state(null);
+// New game mode states
+let gameMode = $state('solo');
+let players = $state([]);
+let currentPlayer = $state(0);
+let teamScores = $state({});
+let selectedDifficulty = $state('medium'); // Default to medium
+let previousScreen = $state('modeSelector'); // Track navigation history
+// New states for modals and UI
+let showSettings = $state(false);
+let showAuth = $state(false);
+let showRoomSelector = $state(false);
+let roomCode = $state('');
+let isRoomHost = $state(false);
+let roomPlayers = $state([]);
+let showCopyMessage = $state(false);
+// Loading states for better UX
+let isCreatingRoom = $state(false);
+let isJoiningRoom = $state(false);
+let isLoadingGame = $state(false);
+// Language and translations - simplified to avoid store conflicts
+const t = $derived((translations && translations[$currentLanguage.code]) ? translations[$currentLanguage.code] : {});
+// Initialize app
+onMount(() => {
     // Initialize language store
     currentLanguage.init();
-    
     // Load theme from localStorage
     const savedTheme = localStorage.getItem('suhba-theme');
     if (savedTheme) {
-      theme = savedTheme;
+        theme = savedTheme;
     }
-    
     // Load points from localStorage
     const savedPoints = localStorage.getItem('suhba-points');
     if (savedPoints) {
-      totalPoints = parseInt(savedPoints);
+        totalPoints = parseInt(savedPoints);
     }
-    
     // Cleanup function for Iman Defender
     return () => {
-      if (gameLoop) {
-        clearInterval(gameLoop);
-        gameLoop = null;
-      }
+        if (gameLoop) {
+            clearInterval(gameLoop);
+            gameLoop = null;
+        }
     };
-  });
-  
-  // Save points to localStorage whenever they change
-  $effect(() => {
+});
+// Save points to localStorage whenever they change
+$effect(() => {
     localStorage.setItem('suhba-points', totalPoints.toString());
-  });
-  
-
-  // Points and rewards system
-  let totalPoints = $state(0);
-  let showReward = $state(false);
-  let rewardMessage = $state('');
-  let showTafsirMoment = $state(false);
-  let tafsirContent = $state({});
-  
-  // Game-specific states
-  let currentQuestionIndex = $state(0);
-  let currentQuestion = $state(null);
-  let gameQuestions = $state([]);
-  let selectedAnswer = $state(null);
-  let showExplanation = $state(false);
-  let isCorrect = $state(false);
-  let questionNames = $state({});
-  
-  // New game states
-  let currentGameMode = $state(null); // For sub-game modes (timeline, decisions, etc.)
-  let draggedEvents = $state([]); // For timeline scramble
-  let currentTimelineChapter = $state(null);
-  let userOrder = $state([]); // User's arrangement
-  let isTimelineComplete = $state(false);
-  let matchedPairs = $state([]); // For Hadith matching
-  let currentAsmaName = $state(null); // For Asma'ul Husna wheel
-  let wheelRotation = $state(0);
-  let timeRemaining = $state(30); // Timer for various games
-  
-  // Iman Defender states
-  let imanDefenderActive = $state(false);
-  let fallingWords = $state([]); // Array of falling negative words
-  let righteousConcepts = $state([]); // 4 righteous concepts at bottom
-  let currentWordPair = $state(null);
-  let gameSpeed = $state(2);
-  let spawnRate = $state(2000);
-  let survivalTime = $state(0);
-  let accuracy = $state(1.0);
-  let hits = $state(0);
-  let misses = $state(0);
-  let gameScore = $state(0);
-  let activePowerups = $state([]);
-  let cannonFiring = $state(false);
-  let wordId = $state(0); // Unique ID for each falling word
-  let gameRunning = $state(false);
-  let gameLoop = $state(null);
-  let gamePaused = $state(false); // General pause state for all games
-  let lastSpawn = $state(0);
-  
-  // Help popup states
-  let showGameHelp = $state(false);
-  let selectedHelpGame = $state(null);
-  let difficultyTimer = $state(0);
-  let consecutiveHits = $state(0);
-  let shieldActive = $state(false);
-  let pointMultiplier = $state(1);
-
-  const chillContent = {
+});
+// Points and rewards system
+let totalPoints = $state(0);
+let showReward = $state(false);
+let rewardMessage = $state('');
+let showTafsirMoment = $state(false);
+let tafsirContent = $state({});
+// Game-specific states
+let currentQuestionIndex = $state(0);
+let currentQuestion = $state(null);
+let gameQuestions = $state([]);
+let selectedAnswer = $state(null);
+let showExplanation = $state(false);
+let isCorrect = $state(false);
+let questionNames = $state({});
+// New game states
+let currentGameMode = $state(null); // For sub-game modes (timeline, decisions, etc.)
+let draggedEvents = $state([]); // For timeline scramble
+let currentTimelineChapter = $state(null);
+let userOrder = $state([]); // User's arrangement
+let isTimelineComplete = $state(false);
+let matchedPairs = $state([]); // For Hadith matching
+let currentAsmaName = $state(null); // For Asma'ul Husna wheel
+let wheelRotation = $state(0);
+let timeRemaining = $state(30); // Timer for various games
+// Iman Defender states
+let imanDefenderActive = $state(false);
+let fallingWords = $state([]); // Array of falling negative words
+let righteousConcepts = $state([]); // 4 righteous concepts at bottom
+let currentWordPair = $state(null);
+let gameSpeed = $state(2);
+let spawnRate = $state(2000);
+let survivalTime = $state(0);
+let accuracy = $state(1.0);
+let hits = $state(0);
+let misses = $state(0);
+let gameScore = $state(0);
+let activePowerups = $state([]);
+let cannonFiring = $state(false);
+let wordId = $state(0); // Unique ID for each falling word
+let gameRunning = $state(false);
+let gameLoop = $state(null);
+let gamePaused = $state(false); // General pause state for all games
+let lastSpawn = $state(0);
+// Help popup states
+let showGameHelp = $state(false);
+let selectedHelpGame = $state(null);
+let difficultyTimer = $state(0);
+let consecutiveHits = $state(0);
+let shieldActive = $state(false);
+let pointMultiplier = $state(1);
+const chillContent = {
     prophets: [
-      {
-        title: "Ibrahim's Ultimate Test",
-        story: "When Allah commanded Prophet Ibrahim عليه السلام to sacrifice his beloved son Ismail, both father and son submitted completely to Allah's will. As Ibrahim prepared to carry out the command, Allah replaced Ismail with a ram, showing that true submission to Allah brings the greatest rewards and that Allah never burdens a soul beyond what it can bear.",
-        reflection: "How can we show complete trust in Allah's wisdom during our own tests?"
-      },
-      {
-        title: "Musa and the Poor Man",
-        story: "Prophet Musa عليه السلام once saw a man making dua for hours. Musa asked Allah why this man's prayers weren't being answered. Allah revealed that the man had a morsel of haram food in his stomach. When Musa told him, the man wept, fasted for 40 days to purify himself, and then his dua was immediately answered.",
-        reflection: "How does the purity of our earnings affect the acceptance of our prayers?"
-      }
+        {
+            title: "Ibrahim's Ultimate Test",
+            story: "When Allah commanded Prophet Ibrahim عليه السلام to sacrifice his beloved son Ismail, both father and son submitted completely to Allah's will. As Ibrahim prepared to carry out the command, Allah replaced Ismail with a ram, showing that true submission to Allah brings the greatest rewards and that Allah never burdens a soul beyond what it can bear.",
+            reflection: "How can we show complete trust in Allah's wisdom during our own tests?"
+        },
+        {
+            title: "Musa and the Poor Man",
+            story: "Prophet Musa عليه السلام once saw a man making dua for hours. Musa asked Allah why this man's prayers weren't being answered. Allah revealed that the man had a morsel of haram food in his stomach. When Musa told him, the man wept, fasted for 40 days to purify himself, and then his dua was immediately answered.",
+            reflection: "How does the purity of our earnings affect the acceptance of our prayers?"
+        }
     ],
     sahaba: [
-      {
-        title: "The Price of Faith",
-        story: "Khabbab ibn al-Aratt was a blacksmith and slave who accepted Islam early in Makkah. His owner tortured him daily, heating iron rods and pressing them to his back until his flesh sizzled and stuck to the ground. When he showed his scars to the Prophet ﷺ and asked for relief, the Prophet replied with tears: 'Those before you were sawed in half yet never gave up their faith. By Allah, this matter will be complete until a rider travels from San'a to Hadramawt fearing no one but Allah.' Years later, when Islam triumphed and people asked about his scars, Khabbab smiled: 'This was the price I paid for the light that entered my heart.'",
-        reflection: "What sacrifices are we willing to make for our faith and principles?"
-      },
-      {
-        title: "Abu Bakr's Generosity",
-        story: "When the Prophet ﷺ called for donations for the Tabuk expedition, Abu Bakr رضي الله عنه brought everything he owned. When asked what he left for his family, he simply said, 'Allah and His Messenger.' His complete trust in Allah's provision and his willingness to give everything for Islam showed the depth of his faith and love for the Prophet ﷺ.",
-        reflection: "How can we balance our worldly responsibilities with our spiritual priorities?"
-      }
+        {
+            title: "The Price of Faith",
+            story: "Khabbab ibn al-Aratt was a blacksmith and slave who accepted Islam early in Makkah. His owner tortured him daily, heating iron rods and pressing them to his back until his flesh sizzled and stuck to the ground. When he showed his scars to the Prophet ﷺ and asked for relief, the Prophet replied with tears: 'Those before you were sawed in half yet never gave up their faith. By Allah, this matter will be complete until a rider travels from San'a to Hadramawt fearing no one but Allah.' Years later, when Islam triumphed and people asked about his scars, Khabbab smiled: 'This was the price I paid for the light that entered my heart.'",
+            reflection: "What sacrifices are we willing to make for our faith and principles?"
+        },
+        {
+            title: "Abu Bakr's Generosity",
+            story: "When the Prophet ﷺ called for donations for the Tabuk expedition, Abu Bakr رضي الله عنه brought everything he owned. When asked what he left for his family, he simply said, 'Allah and His Messenger.' His complete trust in Allah's provision and his willingness to give everything for Islam showed the depth of his faith and love for the Prophet ﷺ.",
+            reflection: "How can we balance our worldly responsibilities with our spiritual priorities?"
+        }
     ]
-  };
-
-  // Game types with translation keys
-  const gameTypesBase = [
+};
+// Game types with translation keys
+const gameTypesBase = [
     // The Main Games
     { id: 'fiqhMaster', nameKey: 'fiqhMaster', icon: Scale, gradient: 'from-emerald-400 via-teal-400 to-cyan-400', shadow: 'shadow-emerald-500/25' },
     { id: 'wisdomSeeker', nameKey: 'wisdomSeeker', icon: Lightbulb, gradient: 'from-blue-400 via-indigo-400 to-purple-400', shadow: 'shadow-blue-500/25' },
     { id: 'chroniclesOfFaith', nameKey: 'chroniclesOfFaith', icon: Scroll, gradient: 'from-amber-400 via-orange-400 to-red-400', shadow: 'shadow-amber-500/25' },
-    
     // Additional Games
     { id: 'hangman', nameKey: 'hangman', icon: Users, gradient: 'from-purple-400 via-pink-400 to-red-400', shadow: 'shadow-purple-500/25' },
     { id: 'tilawahTrail', nameKey: 'tilawahTrail', icon: Book, gradient: 'from-green-400 via-emerald-400 to-teal-400', shadow: 'shadow-green-500/25' },
-    
     // New Interactive Games
     { id: 'seerahScenarios', nameKey: 'seerahScenarios', icon: History, gradient: 'from-rose-400 via-pink-400 to-fuchsia-400', shadow: 'shadow-rose-500/25' },
     { id: 'hadithLab', nameKey: 'hadithLab', icon: Link, gradient: 'from-violet-400 via-purple-400 to-indigo-400', shadow: 'shadow-violet-500/25' },
     { id: 'pillarFoundations', nameKey: 'pillarFoundations', icon: Layers, gradient: 'from-cyan-400 via-blue-400 to-indigo-400', shadow: 'shadow-cyan-500/25' },
-    
     // Journey Games (Solo Only)
     { id: 'seerahTrip', nameKey: 'seerahTrip', name: 'Seerah Trip', icon: Compass, gradient: 'from-yellow-400 via-orange-400 to-amber-500', shadow: 'shadow-yellow-500/25', soloOnly: true },
-    
     // Reflex Games (Solo Only)
     { id: 'imanDefender', nameKey: 'imanDefender', icon: Shield, gradient: 'from-orange-400 via-red-400 to-pink-400', shadow: 'shadow-orange-500/25', soloOnly: true },
-    
     // New Competition Games
     { id: 'lastScholarStanding', nameKey: 'lastScholarStanding', icon: Crown, gradient: 'from-yellow-400 via-orange-400 to-red-400', shadow: 'shadow-yellow-500/25', suhbaOnly: true },
     { id: 'lightningIjaza', nameKey: 'lightningIjaza', icon: Zap, gradient: 'from-yellow-400 via-amber-400 to-orange-400', shadow: 'shadow-yellow-500/25', suhbaOnly: true },
     { id: 'hadithCompletion', nameKey: 'hadithCompletion', icon: BookOpen, gradient: 'from-green-400 via-emerald-400 to-teal-400', shadow: 'shadow-green-500/25' },
     { id: 'dawahChallenge', nameKey: 'dawahChallenge', icon: MessageCircle, gradient: 'from-blue-400 via-purple-400 to-indigo-400', shadow: 'shadow-blue-500/25', suhbaOnly: true }
-  ];
-
-  // Add translated names to game types
-  const gameTypes = $derived(gameTypesBase.map(game => ({
+];
+// Add translated names to game types
+const gameTypes = $derived(gameTypesBase.map(game => ({
     ...game,
     name: (t && t[game.nameKey]) || game.nameKey
-  })));
-
-  // Filter games based on game mode
-  const availableGames = $derived(
-    gameMode === 'team' 
-      ? (gameTypes || []).filter(game => !game.soloOnly)
-      : (gameTypes || []).filter(game => !game.suhbaOnly)
-  );
-  
-
-  const chillCategories = $derived([
+})));
+// Filter games based on game mode
+const availableGames = $derived(gameMode === 'team'
+    ? (gameTypes || []).filter(game => !game.soloOnly)
+    : (gameTypes || []).filter(game => !game.suhbaOnly));
+const chillCategories = $derived([
     { id: 'prophets', name: 'Prophets Stories', icon: Star, gradient: 'from-purple-400 via-indigo-400 to-blue-400', shadow: 'shadow-purple-500/25' },
     { id: 'sahaba', name: 'Sahaba Stories', icon: Users, gradient: 'from-emerald-400 via-green-400 to-teal-400', shadow: 'shadow-emerald-500/25' }
-  ]);
-
-
-  const themes = {
+]);
+const themes = {
     desert: {
-      bg: 'bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50',
-      text: 'text-amber-900',
-      cardBg: 'bg-white/90 backdrop-blur-sm',
-      border: 'border-amber-200/50',
-      iconColor: 'text-amber-700',
-      suhbaColor: 'text-amber-900',
-      loginBg: 'bg-amber-100/20 backdrop-blur-sm',
-      loginHoverBg: 'hover:bg-amber-100/40',
-      loginText: 'text-amber-900/90',
-      loginHoverText: 'hover:text-amber-900'
+        bg: 'bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50',
+        text: 'text-amber-900',
+        cardBg: 'bg-white/90 backdrop-blur-sm',
+        border: 'border-amber-200/50',
+        iconColor: 'text-amber-700',
+        suhbaColor: 'text-amber-900',
+        loginBg: 'bg-amber-100/20 backdrop-blur-sm',
+        loginHoverBg: 'hover:bg-amber-100/40',
+        loginText: 'text-amber-900/90',
+        loginHoverText: 'hover:text-amber-900'
     },
     scroll: {
-      bg: 'bg-gradient-to-br from-yellow-100 via-amber-100 to-orange-100',
-      text: 'text-amber-800',
-      cardBg: 'bg-amber-50/90 backdrop-blur-sm',
-      border: 'border-amber-300/50',
-      iconColor: 'text-amber-700',
-      suhbaColor: 'text-amber-800',
-      loginBg: 'bg-amber-100/30 backdrop-blur-sm',
-      loginHoverBg: 'hover:bg-amber-100/50',
-      loginText: 'text-amber-800/90',
-      loginHoverText: 'hover:text-amber-800'
+        bg: 'bg-gradient-to-br from-yellow-100 via-amber-100 to-orange-100',
+        text: 'text-amber-800',
+        cardBg: 'bg-amber-50/90 backdrop-blur-sm',
+        border: 'border-amber-300/50',
+        iconColor: 'text-amber-700',
+        suhbaColor: 'text-amber-800',
+        loginBg: 'bg-amber-100/30 backdrop-blur-sm',
+        loginHoverBg: 'hover:bg-amber-100/50',
+        loginText: 'text-amber-800/90',
+        loginHoverText: 'hover:text-amber-800'
     },
     midnight: {
-      bg: 'bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900',
-      text: 'text-slate-100',
-      cardBg: 'bg-slate-800/90 backdrop-blur-sm',
-      border: 'border-slate-600/50',
-      iconColor: 'text-slate-100',
-      suhbaColor: 'text-slate-100',
-      loginBg: 'bg-white/10 backdrop-blur-sm',
-      loginHoverBg: 'hover:bg-white/20',
-      loginText: 'text-white/90',
-      loginHoverText: 'hover:text-white'
+        bg: 'bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900',
+        text: 'text-slate-100',
+        cardBg: 'bg-slate-800/90 backdrop-blur-sm',
+        border: 'border-slate-600/50',
+        iconColor: 'text-slate-100',
+        suhbaColor: 'text-slate-100',
+        loginBg: 'bg-white/10 backdrop-blur-sm',
+        loginHoverBg: 'hover:bg-white/20',
+        loginText: 'text-white/90',
+        loginHoverText: 'hover:text-white'
     }
-  };
-
-  const currentTheme = $derived((themes && theme && themes[theme]) ? themes[theme] : (themes && themes['desert']) ? themes['desert'] : {});
-  
-  // Theme-based login button properties
-  const loginButtonProps = $derived(() => {
+};
+const currentTheme = $derived((themes && theme && themes[theme]) ? themes[theme] : (themes && themes['desert']) ? themes['desert'] : {});
+// Theme-based login button properties
+const loginButtonProps = $derived(() => {
     const props = {
-      desert: { text: $currentLanguage.code === 'ar' ? 'أنا' : 'me', icon: UserShmagh },
-      scroll: { text: $currentLanguage.code === 'ar' ? 'أنا' : 'me', icon: UserGlasses },
-      midnight: { text: $currentLanguage.code === 'ar' ? 'أنا' : 'me', icon: UserKeffiyeh }
+        desert: { text: $currentLanguage.code === 'ar' ? 'أنا' : 'me', icon: UserShmagh },
+        scroll: { text: $currentLanguage.code === 'ar' ? 'أنا' : 'me', icon: UserGlasses },
+        midnight: { text: $currentLanguage.code === 'ar' ? 'أنا' : 'me', icon: UserKeffiyeh }
     };
     return (theme && props[theme]) ? props[theme] : { text: $currentLanguage.code === 'ar' ? 'أنا' : 'me', icon: UserShmagh };
-  });
-  
-  // Theme-based settings icon
-  const settingsIcon = $derived(() => {
+});
+// Theme-based settings icon
+const settingsIcon = $derived(() => {
     const icons = {
-      desert: Cog,
-      scroll: Settings2,
-      midnight: Wrench
+        desert: Cog,
+        scroll: Settings2,
+        midnight: Wrench
     };
     return (theme && icons[theme]) ? icons[theme] : Settings;
-  });
-  
-  // Theme-based back button properties with correct direction logic
-  // English: < back (ChevronLeft)
-  // Arabic: رجوع > (ChevronRight)
-  const backButtonProps = $derived(() => {
-    const defaultProps = { 
-      text: (t && t.back) || 'Back', 
-      icon: $currentLanguage.direction === 'rtl' ? ChevronRight : ChevronLeft 
+});
+// Theme-based back button properties with correct direction logic
+// English: < back (ChevronLeft)
+// Arabic: رجوع > (ChevronRight)
+const backButtonProps = $derived(() => {
+    const defaultProps = {
+        text: (t && t.back) || 'Back',
+        icon: $currentLanguage.direction === 'rtl' ? ChevronRight : ChevronLeft
     };
     const props = {
-      desert: defaultProps,
-      scroll: defaultProps,
-      midnight: defaultProps
+        desert: defaultProps,
+        scroll: defaultProps,
+        midnight: defaultProps
     };
     return (theme && props[theme]) ? props[theme] : defaultProps;
-  });
-
-  function handleCardClick() {
+});
+function handleCardClick() {
     isFlipped = !isFlipped;
-  }
-
-  function startChillCategory(category) {
+}
+function startChillCategory(category) {
     chillCategory = category;
     currentScreen = 'chillTell';
     isFlipped = false;
-  }
-
-  function goBackToChillSelector() {
+}
+function goBackToChillSelector() {
     console.log('🔙 Going back to chill selector');
     currentScreen = 'chillSelector';
     chillCategory = null;
     isFlipped = false;
-  }
-
-  function handleCorrect() {
+}
+function handleCorrect() {
     score++;
     round++;
     isFlipped = false;
-  }
-
-  function handleSkip() {
+}
+function handleSkip() {
     round++;
     isFlipped = false;
-  }
-
-  function handleFlipBack() {
+}
+function handleFlipBack() {
     isFlipped = false;
-  }
-
-  function initializeGame() {
+}
+function initializeGame() {
     if (gameMode === 'team' && players.length > 0) {
-      const initialScores = {};
-      players.forEach(player => {
-        initialScores[player] = 0;
-      });
-      teamScores = initialScores;
+        const initialScores = {};
+        players.forEach(player => {
+            initialScores[player] = 0;
+        });
+        teamScores = initialScores;
     }
     currentPlayer = 0;
     score = 0;
     round = 1;
-  }
-
-  function cycleTheme() {
-    if (theme === 'desert') theme = 'scroll';
-    else if (theme === 'scroll') theme = 'midnight';
-    else theme = 'desert';
-    
+}
+function cycleTheme() {
+    if (theme === 'desert')
+        theme = 'scroll';
+    else if (theme === 'scroll')
+        theme = 'midnight';
+    else
+        theme = 'desert';
     // Save to localStorage
     localStorage.setItem('suhba-theme', theme);
-  }
-
-  function shuffleArray(array) {
+}
+function shuffleArray(array) {
     const shuffled = [...array];
     for (let i = shuffled.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
     }
     return shuffled;
-  }
-
-
-  function resetGameState() {
+}
+function resetGameState() {
     selectedAnswer = null;
     showExplanation = false;
     isCorrect = false;
@@ -385,636 +340,581 @@
     showTafsirMoment = false;
     tafsirContent = {};
     gamePaused = false; // Reset pause state
-  }
-
-
-  function showHelp(game, event) {
+}
+function showHelp(game, event) {
     event.stopPropagation(); // Prevent card click
     selectedHelpGame = game;
     showGameHelp = true;
-  }
-
-  function closeHelp() {
+}
+function closeHelp() {
     showGameHelp = false;
     selectedHelpGame = null;
-  }
-
-  function startGame(game) {
+}
+function startGame(game) {
     // Safety check for game object
     if (!game || !game.id) {
-      console.error('Invalid game object:', game);
-      return;
+        console.error('Invalid game object:', game);
+        return;
     }
-    
     // Check if game is coming soon
     if (game.id === 'tilawahTrail') {
-      alert('Tilawah Trail - Coming Soon! This exciting Quranic verse completion game is under development.');
-      return;
+        alert('Tilawah Trail - Coming Soon! This exciting Quranic verse completion game is under development.');
+        return;
     }
-    
     currentGame = game;
     resetGameState();
-    
     // Handle different game types
     if (game.id === 'seerahScenarios' || game.id === 'hadithLab' || game.id === 'pillarFoundations') {
-      currentScreen = 'gameMode';
-    } else if (game.id === 'seerahTrip') {
-      currentScreen = 'seerahTrip';
-    } else if (game.id === 'lastScholarStanding') {
-      currentScreen = 'lastScholarStanding';
-    } else if (game.id === 'lightningIjaza') {
-      currentScreen = 'lightningIjaza';
-    } else if (game.id === 'hadithCompletion') {
-      currentScreen = 'hadithCompletion';
-    } else if (game.id === 'dawahChallenge') {
-      currentScreen = 'dawahChallenge';
-    } else if (game.id === 'imanDefender') {
-      currentScreen = 'playing';
-      initializeImanDefender();
-    } else if (gameMode === 'solo') {
-      // Show difficulty selection for solo games
-      currentScreen = 'difficultySelector';
-    } else {
-      // For team/multiplayer mode, use medium difficulty as default
-      if (gameMode !== 'solo') {
-        selectedDifficulty = 'medium';
-      }
-      currentScreen = 'playing';
-      initializeGameQuestions(game.id);
+        currentScreen = 'gameMode';
     }
-  }
-  
-  function startGameWithDifficulty(difficulty) {
+    else if (game.id === 'seerahTrip') {
+        currentScreen = 'seerahTrip';
+    }
+    else if (game.id === 'lastScholarStanding') {
+        currentScreen = 'lastScholarStanding';
+    }
+    else if (game.id === 'lightningIjaza') {
+        currentScreen = 'lightningIjaza';
+    }
+    else if (game.id === 'hadithCompletion') {
+        currentScreen = 'hadithCompletion';
+    }
+    else if (game.id === 'dawahChallenge') {
+        currentScreen = 'dawahChallenge';
+    }
+    else if (game.id === 'imanDefender') {
+        currentScreen = 'playing';
+        initializeImanDefender();
+    }
+    else if (gameMode === 'solo') {
+        // Show difficulty selection for solo games
+        currentScreen = 'difficultySelector';
+    }
+    else {
+        // For team/multiplayer mode, use medium difficulty as default
+        if (gameMode !== 'solo') {
+            selectedDifficulty = 'medium';
+        }
+        currentScreen = 'playing';
+        initializeGameQuestions(game.id);
+    }
+}
+function startGameWithDifficulty(difficulty) {
     selectedDifficulty = difficulty;
     currentScreen = 'playing';
     initializeGameQuestions(currentGame.id);
-  }
-  
-  function initializeGameQuestions(gameId) {
+}
+function initializeGameQuestions(gameId) {
     if (!newGameContent) {
-      console.error('Game content not available');
-      return;
+        console.error('Game content not available');
+        return;
     }
-    
     if (!gameId) {
-      console.error('Game ID not provided');
-      return;
+        console.error('Game ID not provided');
+        return;
     }
-    
     if (gameId === 'seerahScenarios') {
-      // For Seerah Scenarios in prophetic decisions mode
-      if (newGameContent.seerahScenarios?.propheticDecisions) {
-        gameQuestions = [...newGameContent.seerahScenarios.propheticDecisions];
-        shuffleArray(gameQuestions);
-      }
-    } else if (gameId === 'lastScholarStanding') {
-      // Last Scholar Standing uses its own question format
-      if (newGameContent.lastScholarStanding?.questions) {
-        gameQuestions = [...newGameContent.lastScholarStanding.questions];
-        shuffleArray(gameQuestions);
-      }
-    } else if (gameId === 'lightningIjaza') {
-      // Lightning Ijaza uses its own question format
-      if (newGameContent.lightningIjaza?.questions) {
-        gameQuestions = [...newGameContent.lightningIjaza.questions];
-        shuffleArray(gameQuestions);
-      }
-    } else if (gameId === 'hadithCompletion') {
-      // Hadith Completion uses hadith data
-      if (newGameContent.hadithCompletion?.hadiths) {
-        gameQuestions = [...newGameContent.hadithCompletion.hadiths];
-        shuffleArray(gameQuestions);
-      }
-    } else if (gameId === 'dawahChallenge') {
-      // Dawah Challenge uses challenge data
-      if (newGameContent.dawahChallenge?.challenges) {
-        gameQuestions = [...newGameContent.dawahChallenge.challenges];
-        shuffleArray(gameQuestions);
-      }
-    } else if (newGameContent[gameId]) {
-      let questions = [];
-      
-      // Handle the nested difficulty structure
-      const gameContent = newGameContent[gameId];
-      
-      if (gameMode === 'solo' && selectedDifficulty && selectedDifficulty !== 'all') {
-        // Get questions from specific difficulty level
-        if (gameContent[selectedDifficulty]) {
-          questions = [...gameContent[selectedDifficulty]];
+        // For Seerah Scenarios in prophetic decisions mode
+        if (newGameContent.seerahScenarios?.propheticDecisions) {
+            gameQuestions = [...newGameContent.seerahScenarios.propheticDecisions];
+            shuffleArray(gameQuestions);
         }
-      } else {
-        // Get questions from all difficulty levels
-        if (gameContent.easy) questions.push(...gameContent.easy);
-        if (gameContent.medium) questions.push(...gameContent.medium);
-        if (gameContent.hard) questions.push(...gameContent.hard);
-      }
-      
-      gameQuestions = questions;
-      shuffleArray(gameQuestions);
+    }
+    else if (gameId === 'lastScholarStanding') {
+        // Last Scholar Standing uses its own question format
+        if (newGameContent.lastScholarStanding?.questions) {
+            gameQuestions = [...newGameContent.lastScholarStanding.questions];
+            shuffleArray(gameQuestions);
+        }
+    }
+    else if (gameId === 'lightningIjaza') {
+        // Lightning Ijaza uses its own question format
+        if (newGameContent.lightningIjaza?.questions) {
+            gameQuestions = [...newGameContent.lightningIjaza.questions];
+            shuffleArray(gameQuestions);
+        }
+    }
+    else if (gameId === 'hadithCompletion') {
+        // Hadith Completion uses hadith data
+        if (newGameContent.hadithCompletion?.hadiths) {
+            gameQuestions = [...newGameContent.hadithCompletion.hadiths];
+            shuffleArray(gameQuestions);
+        }
+    }
+    else if (gameId === 'dawahChallenge') {
+        // Dawah Challenge uses challenge data
+        if (newGameContent.dawahChallenge?.challenges) {
+            gameQuestions = [...newGameContent.dawahChallenge.challenges];
+            shuffleArray(gameQuestions);
+        }
+    }
+    else if (newGameContent[gameId]) {
+        let questions = [];
+        // Handle the nested difficulty structure
+        const gameContent = newGameContent[gameId];
+        if (gameMode === 'solo' && selectedDifficulty && selectedDifficulty !== 'all') {
+            // Get questions from specific difficulty level
+            if (gameContent[selectedDifficulty]) {
+                questions = [...gameContent[selectedDifficulty]];
+            }
+        }
+        else {
+            // Get questions from all difficulty levels
+            if (gameContent.easy)
+                questions.push(...gameContent.easy);
+            if (gameContent.medium)
+                questions.push(...gameContent.medium);
+            if (gameContent.hard)
+                questions.push(...gameContent.hard);
+        }
+        gameQuestions = questions;
+        shuffleArray(gameQuestions);
     }
     currentQuestionIndex = 0;
     loadCurrentQuestion();
-  }
-  
-  function loadCurrentQuestion() {
+}
+function loadCurrentQuestion() {
     if (currentQuestionIndex < gameQuestions.length) {
-      currentQuestion = gameQuestions[currentQuestionIndex];
-      questionNames = getQuestionNames(gameMode, players, currentQuestion);
-      selectedAnswer = null;
-      showExplanation = false;
-      isCorrect = false;
+        currentQuestion = gameQuestions[currentQuestionIndex];
+        questionNames = getQuestionNames(gameMode, players, currentQuestion);
+        selectedAnswer = null;
+        showExplanation = false;
+        isCorrect = false;
     }
-  }
-  
-  function isAnswerCorrect(answerIndex) {
+}
+function isAnswerCorrect(answerIndex) {
     // For sourceScholar mode, check if the option has correct: true
     if (selectedGame?.id === 'hadithLab' && gameMode === 'sourceScholar') {
-      const options = currentQuestion.options;
-      return options && options[answerIndex] && options[answerIndex].correct === true;
+        const options = currentQuestion.options;
+        return options && options[answerIndex] && options[answerIndex].correct === true;
     }
     // For other modes, use the correct index
     return answerIndex === currentQuestion.correct;
-  }
-
-  function handleAnswerSelection(answerIndex) {
+}
+function handleAnswerSelection(answerIndex) {
     // Check if it's multiplayer and if it's the current player's turn
     if (gameMode === 'team' && $connectionState.connected) {
-      const currentPlayerIndex = players.findIndex(p => p === getMyPlayerName());
-      if (currentPlayerIndex !== currentPlayer) {
-        console.log(`⚠️ Not your turn! Current player: ${players[currentPlayer]}, You: ${getMyPlayerName()}`);
-        return; // Prevent answering when it's not your turn
-      }
-      
-      console.log(`🎯 Player ${getMyPlayerName()} selected answer ${answerIndex}`);
+        const currentPlayerIndex = players.findIndex(p => p === getMyPlayerName());
+        if (currentPlayerIndex !== currentPlayer) {
+            console.log(`⚠️ Not your turn! Current player: ${players[currentPlayer]}, You: ${getMyPlayerName()}`);
+            return; // Prevent answering when it's not your turn
+        }
+        console.log(`🎯 Player ${getMyPlayerName()} selected answer ${answerIndex}`);
     }
-    
     selectedAnswer = answerIndex;
     isCorrect = isAnswerCorrect(answerIndex);
     showExplanation = true;
-    
     if (isCorrect) {
-      // Award points
-      const pointsEarned = currentQuestion.difficulty === 'hard' ? 15 : 
-                          currentQuestion.difficulty === 'medium' ? 10 : 5;
-      totalPoints += pointsEarned;
-      
-      if (gameMode === 'team') {
-        const currentPlayerName = players[currentPlayer];
-        teamScores[currentPlayerName] = (teamScores[currentPlayerName] || 0) + pointsEarned;
-      } else {
-        score += pointsEarned;
-      }
-      
-      // Show reward message
-      rewardMessage = `Great job! +${pointsEarned} points`;
-      showReward = true;
-      setTimeout(() => showReward = false, 2000);
-    } else {
-      // Show Tafsir Moment for wrong answers
-      showTafsirMoment = true;
-      const localizedContent = getLocalizedContent(currentQuestion, 'en');
-      tafsirContent = {
-        explanation: localizedContent.explanation,
-        hadith: localizedContent.hadith || null,
-        verse: currentQuestion.verse || null
-      };
+        // Award points
+        const pointsEarned = currentQuestion.difficulty === 'hard' ? 15 :
+            currentQuestion.difficulty === 'medium' ? 10 : 5;
+        totalPoints += pointsEarned;
+        if (gameMode === 'team') {
+            const currentPlayerName = players[currentPlayer];
+            teamScores[currentPlayerName] = (teamScores[currentPlayerName] || 0) + pointsEarned;
+        }
+        else {
+            score += pointsEarned;
+        }
+        // Show reward message
+        rewardMessage = `Great job! +${pointsEarned} points`;
+        showReward = true;
+        setTimeout(() => showReward = false, 2000);
     }
-    
+    else {
+        // Show Tafsir Moment for wrong answers
+        showTafsirMoment = true;
+        const localizedContent = getLocalizedContent(currentQuestion, 'en');
+        tafsirContent = {
+            explanation: localizedContent.explanation,
+            hadith: localizedContent.hadith || null,
+            verse: currentQuestion.verse || null
+        };
+    }
     // Broadcast answer selection to other players if in multiplayer mode
     if (gameMode === 'team' && $connectionState.connected && roomCode) {
-      wsManager.selectAnswer(
-        roomCode, 
-        answerIndex, 
-        isCorrect, 
-        currentPlayer, 
-        players[currentPlayer]
-      );
+        wsManager.selectAnswer(roomCode, answerIndex, isCorrect, currentPlayer, players[currentPlayer]);
     }
-  }
-  
-  function nextQuestion() {
+}
+function nextQuestion() {
     // In multiplayer mode, only allow the current player to advance to next question
     if (gameMode === 'team' && $connectionState.connected) {
-      const myPlayerIndex = players.findIndex(p => p === getMyPlayerName());
-      if (myPlayerIndex !== currentPlayer) {
-        console.log(`⚠️ Only ${players[currentPlayer]} can advance to next question!`);
-        return; // Prevent non-current player from advancing
-      }
+        const myPlayerIndex = players.findIndex(p => p === getMyPlayerName());
+        if (myPlayerIndex !== currentPlayer) {
+            console.log(`⚠️ Only ${players[currentPlayer]} can advance to next question!`);
+            return; // Prevent non-current player from advancing
+        }
     }
-    
     // Calculate next state
     const nextPlayerIndex = gameMode === 'team' ? (currentPlayer + 1) % players.length : currentPlayer;
     const nextQuestionIndex = currentQuestionIndex + 1;
-    
     // Broadcast to other players if in multiplayer mode
     if (gameMode === 'team' && $connectionState.connected && roomCode) {
-      console.log(`🎯 ${getMyPlayerName()} advancing to next question`);
-      wsManager.nextQuestion(roomCode, nextPlayerIndex, nextQuestionIndex);
+        console.log(`🎯 ${getMyPlayerName()} advancing to next question`);
+        wsManager.nextQuestion(roomCode, nextPlayerIndex, nextQuestionIndex);
     }
-    
     // Apply changes locally
     if (gameMode === 'team') {
-      currentPlayer = nextPlayerIndex;
+        currentPlayer = nextPlayerIndex;
     }
-    
     currentQuestionIndex = nextQuestionIndex;
     round++;
-    
     if (currentQuestionIndex < gameQuestions.length) {
-      resetAnswerState(); // Reset answer-related state
-      loadCurrentQuestion();
-    } else {
-      // Game finished
-      currentScreen = 'gameComplete';
+        resetAnswerState(); // Reset answer-related state
+        loadCurrentQuestion();
     }
-  }
-
-  // Helper function to reset answer state between questions
-  function resetAnswerState() {
+    else {
+        // Game finished
+        currentScreen = 'gameComplete';
+    }
+}
+// Helper function to reset answer state between questions
+function resetAnswerState() {
     selectedAnswer = null;
     showExplanation = false;
     isCorrect = false;
     showTafsirMoment = false;
     showReward = false;
-  }
-  
-  function closeTafsirMoment() {
+}
+function closeTafsirMoment() {
     showTafsirMoment = false;
-  }
-  
-  function formatQuestionText(text, names) {
+}
+function formatQuestionText(text, names) {
     let formattedText = text;
-    
     // Replace character names based on game mode
     if (names.character) {
-      formattedText = formattedText.replace(/Ali|Ahmed|Ayub|Amina|Yusuf|Omar/g, names.character);
+        formattedText = formattedText.replace(/Ali|Ahmed|Ayub|Amina|Yusuf|Omar/g, names.character);
     }
     if (names.questioner) {
-      formattedText = formattedText.replace(/Ahmed|Amina|Yusuf/g, names.questioner);
+        formattedText = formattedText.replace(/Ahmed|Amina|Yusuf/g, names.questioner);
     }
     if (names.mufti && names.mufti !== 'you') {
-      formattedText = formattedText.replace(/you/g, names.mufti);
+        formattedText = formattedText.replace(/you/g, names.mufti);
     }
-    
     return formattedText;
-  }
-
-  // Function to get localized game content
-  function getLocalizedContent(content, language) {
+}
+// Function to get localized game content
+function getLocalizedContent(content, language) {
     // Handle null/undefined content
     if (!content) {
-      return {
-        prompt: '',
-        options: [],
-        explanation: '',
-        hadith: '',
-        scenario: '',
-        hadithText: ''
-      };
+        return {
+            prompt: '',
+            options: [],
+            explanation: '',
+            hadith: '',
+            scenario: '',
+            hadithText: ''
+        };
     }
-    
     if (language === 'ar') {
-      // Return Arabic version if available, otherwise return original
-      return {
-        prompt: content.prompt_ar || content.prompt,
-        options: content.options_ar || content.options,
-        explanation: content.explanation_ar || content.explanation,
-        hadith: content.hadith_ar || content.hadith,
-        scenario: content.scenario_ar || content.scenario,
-        hadithText: content.hadithText_ar || content.hadithText
-      };
+        // Return Arabic version if available, otherwise return original
+        return {
+            prompt: content.prompt_ar || content.prompt,
+            options: content.options_ar || content.options,
+            explanation: content.explanation_ar || content.explanation,
+            hadith: content.hadith_ar || content.hadith,
+            scenario: content.scenario_ar || content.scenario,
+            hadithText: content.hadithText_ar || content.hadithText
+        };
     }
     return content;
-  }
-
-  
-  // Room management functions
-  // Map frontend game IDs to backend quiz types
-  function getQuizTypeFromGame(gameId) {
+}
+// Room management functions
+// Map frontend game IDs to backend quiz types
+function getQuizTypeFromGame(gameId) {
     const gameQuizMapping = {
-      'maqasidMaster': 'maqasid',
-      'meccanMedinanGame': 'makan_nuzul',
-      'tilawahTrail': 'tarteeb_suwar',
-      'seerahScenarios': 'ghareeb',
-      'hadithLab': 'ghareeb',
-      'pillarFoundations': 'ghareeb',
-      'imanDefender': 'ghareeb'
+        'maqasidMaster': 'maqasid',
+        'meccanMedinanGame': 'makan_nuzul',
+        'tilawahTrail': 'tarteeb_suwar',
+        'seerahScenarios': 'ghareeb',
+        'hadithLab': 'ghareeb',
+        'pillarFoundations': 'ghareeb',
+        'imanDefender': 'ghareeb'
     };
     return gameQuizMapping[gameId] || 'ghareeb'; // default to ghareeb
-  }
-
-  async function createRoom() {
-    if (isCreatingRoom) return; // Prevent double-click
-    
+}
+async function createRoom() {
+    if (isCreatingRoom)
+        return; // Prevent double-click
     isCreatingRoom = true;
     try {
-      roomCode = Math.random().toString(36).substring(2, 8).toUpperCase();
-      isRoomHost = true;
-      roomPlayers = ['Host']; // Add host as first player
-      gameMode = 'team';
-      previousScreen = 'suhbaSelector';
-      
-      // Connect to WebSocket backend if not already connected
-      if (!$connectionState.connected) {
-        await wsManager.connect();
-      }
-      
-      // Small delay for better UX
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      currentScreen = 'createRoomGameSelector';
-      console.log('🎯 HOST created room:', roomCode, '- isRoomHost:', isRoomHost);
-      toastManager.showSuccess(`Room ${roomCode} created successfully!`);
-    } catch (error) {
-      console.error('Failed to create room:', error);
-      const errorMsg = $connectionState.error || 'Failed to create room. Please try again.';
-      toastManager.showError(errorMsg);
-    } finally {
-      isCreatingRoom = false;
+        roomCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+        isRoomHost = true;
+        roomPlayers = ['Host']; // Add host as first player
+        gameMode = 'team';
+        previousScreen = 'suhbaSelector';
+        // Connect to WebSocket backend if not already connected
+        if (!$connectionState.connected) {
+            await wsManager.connect();
+        }
+        // Small delay for better UX
+        await new Promise(resolve => setTimeout(resolve, 500));
+        currentScreen = 'createRoomGameSelector';
+        console.log('🎯 HOST created room:', roomCode, '- isRoomHost:', isRoomHost);
+        toastManager.showSuccess(`Room ${roomCode} created successfully!`);
     }
-  }
-  
-  async function joinRoom() {
-    if (!roomCode.trim() || isJoiningRoom) return; // Prevent invalid/double attempts
-    
+    catch (error) {
+        console.error('Failed to create room:', error);
+        const errorMsg = $connectionState.error || 'Failed to create room. Please try again.';
+        toastManager.showError(errorMsg);
+    }
+    finally {
+        isCreatingRoom = false;
+    }
+}
+async function joinRoom() {
+    if (!roomCode.trim() || isJoiningRoom)
+        return; // Prevent invalid/double attempts
     isJoiningRoom = true;
     try {
-      isRoomHost = false;
-      gameMode = 'team';
-      
-      // Connect to WebSocket backend if not already connected
-      if (!$connectionState.connected) {
-        await wsManager.connect();
-      }
-      
-      // Join room in backend - use default quiz type, backend will handle the actual room type
-      await wsManager.joinRoom(roomCode, 'ghareeb');
-      console.log('👥 PLAYER joined room:', roomCode, '- isRoomHost:', isRoomHost);
-      toastManager.showSuccess(`Successfully joined room ${roomCode}!`);
-      
-      currentScreen = 'roomLobby';
-    } catch (error) {
-      console.error('Failed to join room:', error);
-      toastManager.showError(`Failed to join room ${roomCode}. Please check the code and try again.`);
-    } finally {
-      isJoiningRoom = false;
+        isRoomHost = false;
+        gameMode = 'team';
+        // Connect to WebSocket backend if not already connected
+        if (!$connectionState.connected) {
+            await wsManager.connect();
+        }
+        // Join room in backend - use default quiz type, backend will handle the actual room type
+        await wsManager.joinRoom(roomCode, 'ghareeb');
+        console.log('👥 PLAYER joined room:', roomCode, '- isRoomHost:', isRoomHost);
+        toastManager.showSuccess(`Successfully joined room ${roomCode}!`);
+        currentScreen = 'roomLobby';
     }
-  }
-  
-  function leaveRoom() {
+    catch (error) {
+        console.error('Failed to join room:', error);
+        toastManager.showError(`Failed to join room ${roomCode}. Please check the code and try again.`);
+    }
+    finally {
+        isJoiningRoom = false;
+    }
+}
+function leaveRoom() {
     // Leave room in backend if connected
     if ($connectionState.connected && roomCode) {
-      wsManager.leaveRoom(roomCode);
+        wsManager.leaveRoom(roomCode);
     }
-    
     roomCode = '';
     isRoomHost = false;
     roomPlayers = [];
     gameMode = 'team';
     currentScreen = 'suhbaSelector';
-  }
-  
-  function copyRoomCode() {
+}
+function copyRoomCode() {
     navigator.clipboard.writeText(roomCode).then(() => {
-      showCopyMessage = true;
-      setTimeout(() => {
-        showCopyMessage = false;
-      }, 2000);
+        showCopyMessage = true;
+        setTimeout(() => {
+            showCopyMessage = false;
+        }, 2000);
     });
-  }
-
-  // Helper function to determine current player's name based on host status
-  function getMyPlayerName() {
+}
+// Helper function to determine current player's name based on host status
+function getMyPlayerName() {
     if (isRoomHost) {
-      return 'Host';
-    } else {
-      // For non-host players, determine position based on room state
-      const playerNames = $roomState.players.length > 0 ? $roomState.players : players;
-      
-      if (playerNames.length <= 1) {
-        return 'Player 2'; // Default for second player
-      }
-      
-      // Use client ID to consistently determine player position
-      const availableSlots = playerNames.filter(p => p !== 'Host');
-      if (availableSlots.length === 0) {
-        return 'Player 2';
-      }
-      
-      // More reliable player identification
-      const myIndex = Math.abs(clientId.split('').reduce((a, b) => a + b.charCodeAt(0), 0)) % Math.max(1, availableSlots.length);
-      return availableSlots[myIndex] || `Player ${Math.min(playerNames.length + 1, 6)}`;
+        return 'Host';
     }
-  }
-
-  // Helper function to check if it's not the current player's turn
-  function isNotMyTurn() {
+    else {
+        // For non-host players, determine position based on room state
+        const playerNames = $roomState.players.length > 0 ? $roomState.players : players;
+        if (playerNames.length <= 1) {
+            return 'Player 2'; // Default for second player
+        }
+        // Use client ID to consistently determine player position
+        const availableSlots = playerNames.filter(p => p !== 'Host');
+        if (availableSlots.length === 0) {
+            return 'Player 2';
+        }
+        // More reliable player identification
+        const myIndex = Math.abs(clientId.split('').reduce((a, b) => a + b.charCodeAt(0), 0)) % Math.max(1, availableSlots.length);
+        return availableSlots[myIndex] || `Player ${Math.min(playerNames.length + 1, 6)}`;
+    }
+}
+// Helper function to check if it's not the current player's turn
+function isNotMyTurn() {
     if (gameMode !== 'team' || !$connectionState.connected) {
-      return false; // In solo mode or offline, always allow answering
+        return false; // In solo mode or offline, always allow answering
     }
-    
     const myName = getMyPlayerName();
     const playerNames = $roomState.players.length > 0 ? $roomState.players : players;
     const myPlayerIndex = playerNames.findIndex(p => p === myName);
-    
     console.log(`🎯 Turn check - My name: ${myName}, My index: ${myPlayerIndex}, Current player: ${currentPlayer}, Players: ${JSON.stringify(playerNames)}`);
-    
     // If player not found in list, assume it's their turn (fallback)
     if (myPlayerIndex === -1) {
-      return false;
+        return false;
     }
-    
     return myPlayerIndex !== currentPlayer;
-  }
-
-  // Handle multiplayer game start from WebSocket
-  $effect(() => {
+}
+// Handle multiplayer game start from WebSocket
+$effect(() => {
     console.log(`[${clientId}] Effect triggered - gameStarted:`, $roomState.gameStarted, 'isRoomHost:', isRoomHost, 'gameId:', $roomState.gameId, 'currentScreen:', currentScreen);
-    
     if ($roomState.gameStarted && !isRoomHost && $roomState.gameId && currentScreen === 'roomLobby') {
-      console.log(`[${clientId}] 🎮 Non-host player starting game:`, $roomState.gameId);
-      
-      // Find the game from availableGames using the gameId from WebSocket
-      const gameToStart = availableGames.find(game => game.id === $roomState.gameId);
-      if (!gameToStart) {
-        console.error('❌ Game not found:', $roomState.gameId, 'Available games:', availableGames.map(g => g.id));
-        return;
-      }
-      
-      console.log('✅ Game found, starting:', gameToStart.name);
-      
-      // Set the current game so non-host players know what to play
-      currentGame = gameToStart;
-      gameMode = 'team';
-      players = $roomState.players.length > 0 ? [...$roomState.players] : ['Host', 'Player 2'];
-      
-      // Initialize game state
-      initializeGame();
-      resetGameState();
-      
-      console.log('🚀 Launching game screen for:', currentGame.id);
-      
-      // Start the same game that host selected
-      if (currentGame.id === 'imanDefender') {
-        currentScreen = 'playing';
-        initializeImanDefender();
-      } else if (currentGame.id === 'seerahScenarios' || currentGame.id === 'hadithLab' || currentGame.id === 'pillarFoundations') {
-        currentScreen = 'gameMode';
-      } else {
-        selectedDifficulty = 'medium';
-        currentScreen = 'playing';
-        initializeGameQuestions(currentGame.id);
-      }
-      
-      // Reset game started state to prevent retriggering
-      wsManager.resetGameStarted();
-      
-      console.log('✅ Game launch completed for non-host player');
+        console.log(`[${clientId}] 🎮 Non-host player starting game:`, $roomState.gameId);
+        // Find the game from availableGames using the gameId from WebSocket
+        const gameToStart = availableGames.find(game => game.id === $roomState.gameId);
+        if (!gameToStart) {
+            console.error('❌ Game not found:', $roomState.gameId, 'Available games:', availableGames.map(g => g.id));
+            return;
+        }
+        console.log('✅ Game found, starting:', gameToStart.name);
+        // Set the current game so non-host players know what to play
+        currentGame = gameToStart;
+        gameMode = 'team';
+        players = $roomState.players.length > 0 ? [...$roomState.players] : ['Host', 'Player 2'];
+        // Initialize game state
+        initializeGame();
+        resetGameState();
+        console.log('🚀 Launching game screen for:', currentGame.id);
+        // Start the same game that host selected
+        if (currentGame.id === 'imanDefender') {
+            currentScreen = 'playing';
+            initializeImanDefender();
+        }
+        else if (currentGame.id === 'seerahScenarios' || currentGame.id === 'hadithLab' || currentGame.id === 'pillarFoundations') {
+            currentScreen = 'gameMode';
+        }
+        else {
+            selectedDifficulty = 'medium';
+            currentScreen = 'playing';
+            initializeGameQuestions(currentGame.id);
+        }
+        // Reset game started state to prevent retriggering
+        wsManager.resetGameStarted();
+        console.log('✅ Game launch completed for non-host player');
     }
-  });
-
-  // Simplified answer synchronization - removed complex effect
-  let lastProcessedMessage = $state(null);
-
-  // Simplified next question synchronization - removed complex effect
-  let nextQuestionSync = $state(false);
-  
-  function startMultiplayerGame() {
+});
+// Simplified answer synchronization - removed complex effect
+let lastProcessedMessage = $state(null);
+// Simplified next question synchronization - removed complex effect
+let nextQuestionSync = $state(false);
+function startMultiplayerGame() {
     if (($roomState.playerCount || roomPlayers.length) >= 2 && currentGame) {
-      console.log(`[${clientId}] 🎯 Host starting multiplayer game:`, currentGame.id, 'with', ($roomState.playerCount || roomPlayers.length), 'players');
-      
-      // Set up team mode properly
-      gameMode = 'team';
-      players = $roomState.players.length > 0 ? [...$roomState.players] : [...roomPlayers];
-      previousScreen = 'roomLobby';
-      
-      // Notify backend that game is starting
-      if ($connectionState.connected && roomCode) {
-        console.log('📡 Sending game start signal to backend for room:', roomCode);
-        wsManager.startGame(roomCode, currentGame.id, currentGame.id);
-      } else {
-        console.warn('⚠️ Not connected to backend, cannot notify other players');
-      }
-      
-      // Initialize game state first
-      initializeGame();
-      resetGameState();
-      
-      console.log('🚀 Host launching game screen for:', currentGame.id);
-      
-      // Directly start the selected game instead of going to game selector
-      if (currentGame.id === 'imanDefender') {
-        currentScreen = 'playing';
-        initializeImanDefender();
-      } else if (currentGame.id === 'seerahScenarios' || currentGame.id === 'hadithLab' || currentGame.id === 'pillarFoundations') {
-        currentScreen = 'gameMode';
-      } else {
-        // For other games, go directly to playing screen with medium difficulty
-        selectedDifficulty = 'medium';
-        currentScreen = 'playing';
-        initializeGameQuestions(currentGame.id);
-      }
-      
-      console.log('✅ Host game launch completed');
-    } else {
-      console.warn('⚠️ Cannot start game - not enough players or no game selected');
+        console.log(`[${clientId}] 🎯 Host starting multiplayer game:`, currentGame.id, 'with', ($roomState.playerCount || roomPlayers.length), 'players');
+        // Set up team mode properly
+        gameMode = 'team';
+        players = $roomState.players.length > 0 ? [...$roomState.players] : [...roomPlayers];
+        previousScreen = 'roomLobby';
+        // Notify backend that game is starting
+        if ($connectionState.connected && roomCode) {
+            console.log('📡 Sending game start signal to backend for room:', roomCode);
+            wsManager.startGame(roomCode, currentGame.id, currentGame.id);
+        }
+        else {
+            console.warn('⚠️ Not connected to backend, cannot notify other players');
+        }
+        // Initialize game state first
+        initializeGame();
+        resetGameState();
+        console.log('🚀 Host launching game screen for:', currentGame.id);
+        // Directly start the selected game instead of going to game selector
+        if (currentGame.id === 'imanDefender') {
+            currentScreen = 'playing';
+            initializeImanDefender();
+        }
+        else if (currentGame.id === 'seerahScenarios' || currentGame.id === 'hadithLab' || currentGame.id === 'pillarFoundations') {
+            currentScreen = 'gameMode';
+        }
+        else {
+            // For other games, go directly to playing screen with medium difficulty
+            selectedDifficulty = 'medium';
+            currentScreen = 'playing';
+            initializeGameQuestions(currentGame.id);
+        }
+        console.log('✅ Host game launch completed');
     }
-  }
-  
-  // New game functions
-  function selectGameMode(mode) {
+    else {
+        console.warn('⚠️ Cannot start game - not enough players or no game selected');
+    }
+}
+// New game functions
+function selectGameMode(mode) {
     currentGameMode = mode;
     currentScreen = 'playing';
-    
     if (currentGame.id === 'seerahScenarios') {
-      if (mode === 'timelineScramble') {
-        initializeTimelineScramble();
-      } else if (mode === 'propheticDecisions') {
-        initializeGameQuestions('seerahScenarios');
-      }
-    } else if (currentGame.id === 'hadithLab') {
-      initializeHadithLab(mode);
-    } else if (currentGame.id === 'pillarFoundations') {
-      initializePillarFoundations(mode);
+        if (mode === 'timelineScramble') {
+            initializeTimelineScramble();
+        }
+        else if (mode === 'propheticDecisions') {
+            initializeGameQuestions('seerahScenarios');
+        }
     }
-  }
-  
-  function initializeTimelineScramble() {
+    else if (currentGame.id === 'hadithLab') {
+        initializeHadithLab(mode);
+    }
+    else if (currentGame.id === 'pillarFoundations') {
+        initializePillarFoundations(mode);
+    }
+}
+function initializeTimelineScramble() {
     if (!newGameContent?.seerahScenarios?.timelineScramble) {
-      console.error('Seerah Scenarios timeline content not available');
-      return;
+        console.error('Seerah Scenarios timeline content not available');
+        return;
     }
-    
     const chapters = newGameContent.seerahScenarios.timelineScramble;
     if (chapters && chapters.length > 0) {
-      currentTimelineChapter = chapters[Math.floor(Math.random() * chapters.length)];
-      if (currentTimelineChapter?.events) {
-        draggedEvents = [...currentTimelineChapter.events].sort(() => Math.random() - 0.5);
-        userOrder = [];
-        isTimelineComplete = false;
-      }
+        currentTimelineChapter = chapters[Math.floor(Math.random() * chapters.length)];
+        if (currentTimelineChapter?.events) {
+            draggedEvents = [...currentTimelineChapter.events].sort(() => Math.random() - 0.5);
+            userOrder = [];
+            isTimelineComplete = false;
+        }
     }
-  }
-  
-  function initializeHadithLab(mode) {
+}
+function initializeHadithLab(mode) {
     if (!newGameContent?.hadithLab) {
-      console.error('Hadith Lab content not available');
-      return;
+        console.error('Hadith Lab content not available');
+        return;
     }
-    
     if (mode === 'isnadChains') {
-      const chains = newGameContent.hadithLab.isnadChains;
-      if (chains && chains.length > 0) {
-        currentQuestion = chains[Math.floor(Math.random() * chains.length)];
-      }
-    } else if (mode === 'matnMatching') {
-      const matching = newGameContent.hadithLab.matnMatching;
-      if (matching && matching.length > 0) {
-        currentQuestion = matching[Math.floor(Math.random() * matching.length)];
-        matchedPairs = [];
-      }
-    } else if (mode === 'sourceScholar') {
-      const scholar = newGameContent.hadithLab.sourceScholar;
-      if (scholar && scholar.length > 0) {
-        currentQuestion = scholar[Math.floor(Math.random() * scholar.length)];
-      }
+        const chains = newGameContent.hadithLab.isnadChains;
+        if (chains && chains.length > 0) {
+            currentQuestion = chains[Math.floor(Math.random() * chains.length)];
+        }
     }
-  }
-  
-  function initializePillarFoundations(mode) {
+    else if (mode === 'matnMatching') {
+        const matching = newGameContent.hadithLab.matnMatching;
+        if (matching && matching.length > 0) {
+            currentQuestion = matching[Math.floor(Math.random() * matching.length)];
+            matchedPairs = [];
+        }
+    }
+    else if (mode === 'sourceScholar') {
+        const scholar = newGameContent.hadithLab.sourceScholar;
+        if (scholar && scholar.length > 0) {
+            currentQuestion = scholar[Math.floor(Math.random() * scholar.length)];
+        }
+    }
+}
+function initializePillarFoundations(mode) {
     if (!newGameContent?.pillarFoundations) {
-      console.error('Pillar Foundations content not available');
-      return;
+        console.error('Pillar Foundations content not available');
+        return;
     }
-    
     if (mode === 'beliefBuilder') {
-      const beliefs = newGameContent.pillarFoundations.beliefBuilder;
-      if (beliefs && beliefs.length > 0) {
-        currentQuestion = beliefs[Math.floor(Math.random() * beliefs.length)];
-      }
-    } else if (mode === 'categorizationBlitz') {
-      const categories = newGameContent.pillarFoundations.categorizationBlitz;
-      if (categories && categories.length > 0) {
-        currentQuestion = categories[Math.floor(Math.random() * categories.length)];
-        timeRemaining = 30;
-      }
-    } else if (mode === 'asmaUlHusna') {
-      const names = newGameContent.pillarFoundations.asmaUlHusna;
-      if (names && names.length > 0) {
-        currentAsmaName = names[Math.floor(Math.random() * names.length)];
-        wheelRotation = 0;
-        timeRemaining = 15;
-      }
+        const beliefs = newGameContent.pillarFoundations.beliefBuilder;
+        if (beliefs && beliefs.length > 0) {
+            currentQuestion = beliefs[Math.floor(Math.random() * beliefs.length)];
+        }
     }
-  }
-  
-  // Iman Defender Functions
-  function initializeImanDefender() {
+    else if (mode === 'categorizationBlitz') {
+        const categories = newGameContent.pillarFoundations.categorizationBlitz;
+        if (categories && categories.length > 0) {
+            currentQuestion = categories[Math.floor(Math.random() * categories.length)];
+            timeRemaining = 30;
+        }
+    }
+    else if (mode === 'asmaUlHusna') {
+        const names = newGameContent.pillarFoundations.asmaUlHusna;
+        if (names && names.length > 0) {
+            currentAsmaName = names[Math.floor(Math.random() * names.length)];
+            wheelRotation = 0;
+            timeRemaining = 15;
+        }
+    }
+}
+// Iman Defender Functions
+function initializeImanDefender() {
     if (!newGameContent?.imanDefender?.difficulty) {
-      console.error('Iman Defender content not available');
-      return;
+        console.error('Iman Defender content not available');
+        return;
     }
-    
     imanDefenderActive = true;
     fallingWords = [];
     righteousConcepts = [];
@@ -1034,280 +934,240 @@
     consecutiveHits = 0;
     shieldActive = false;
     pointMultiplier = 1;
-    
     // Generate initial righteous concepts
     generateRighteousConcepts();
-    
     // Start game loop
     startImanDefenderLoop();
-  }
-  
-  function generateRighteousConcepts() {
+}
+function generateRighteousConcepts() {
     const wordPairs = newGameContent.imanDefender.wordPairs;
     const randomPair = wordPairs[Math.floor(Math.random() * wordPairs.length)];
     currentWordPair = randomPair;
-    
     // Shuffle the positives array and take 4
     const shuffled = [...randomPair.positives].sort(() => Math.random() - 0.5);
     righteousConcepts = shuffled.slice(0, 4);
-  }
-  
-  function startImanDefenderLoop() {
+}
+function startImanDefenderLoop() {
     gameLoop = setInterval(() => {
-      updateImanDefenderGame();
+        updateImanDefenderGame();
     }, 16); // ~60 FPS
-  }
-  
-  function updateImanDefenderGame() {
-    if (!gameRunning) return;
-    
+}
+function updateImanDefenderGame() {
+    if (!gameRunning)
+        return;
     const now = Date.now();
-    
     // Update survival time
     survivalTime += 16;
-    
     // Update difficulty every 10 seconds
     difficultyTimer += 16;
     if (difficultyTimer >= 10000) {
-      increaseDifficulty();
-      difficultyTimer = 0;
+        increaseDifficulty();
+        difficultyTimer = 0;
     }
-    
     // Spawn new words
     if (now - lastSpawn >= spawnRate) {
-      spawnFallingWord();
-      lastSpawn = now;
+        spawnFallingWord();
+        lastSpawn = now;
     }
-    
     // Update falling words positions
     updateFallingWords();
-    
     // Update powerups
     updatePowerups();
-    
     // Update score
     gameScore = calculateScore();
-  }
-  
-  function increaseDifficulty() {
+}
+function increaseDifficulty() {
     const diff = newGameContent.imanDefender.difficulty;
     gameSpeed = Math.min(gameSpeed + diff.speedIncrease, diff.maxSpeed);
     spawnRate = Math.max(spawnRate - diff.spawnRateDecrease, diff.minSpawnRate);
-  }
-  
-  function spawnFallingWord() {
+}
+function spawnFallingWord() {
     const wordPairs = newGameContent.imanDefender.wordPairs;
     const randomWord = wordPairs[Math.floor(Math.random() * wordPairs.length)];
-    
     // Check for powerup spawn
     const shouldSpawnPowerup = Math.random() < newGameContent.imanDefender.difficulty.powerupChance;
-    
     if (shouldSpawnPowerup) {
-      spawnPowerup();
-    } else {
-      const newWord = {
-        id: wordId++,
-        text: randomWord.negative,
-        arabic: randomWord.arabic,
-        correctAnswer: randomWord.correctAnswer,
-        x: Math.random() * 300 + 50, // Random horizontal position
-        y: -50, // Start above screen
-        speed: gameSpeed,
-        type: 'negative'
-      };
-      
-      fallingWords = [...fallingWords, newWord];
+        spawnPowerup();
     }
-  }
-  
-  function spawnPowerup() {
+    else {
+        const newWord = {
+            id: wordId++,
+            text: randomWord.negative,
+            arabic: randomWord.arabic,
+            correctAnswer: randomWord.correctAnswer,
+            x: Math.random() * 300 + 50, // Random horizontal position
+            y: -50, // Start above screen
+            speed: gameSpeed,
+            type: 'negative'
+        };
+        fallingWords = [...fallingWords, newWord];
+    }
+}
+function spawnPowerup() {
     const powerups = newGameContent.imanDefender.powerups;
     const randomPowerup = powerups[Math.floor(Math.random() * powerups.length)];
-    
     const newPowerup = {
-      id: wordId++,
-      ...randomPowerup,
-      x: Math.random() * 300 + 50,
-      y: -50,
-      speed: gameSpeed * 0.8, // Slightly slower than negative words
-      type: 'powerup'
+        id: wordId++,
+        ...randomPowerup,
+        x: Math.random() * 300 + 50,
+        y: -50,
+        speed: gameSpeed * 0.8, // Slightly slower than negative words
+        type: 'powerup'
     };
-    
     fallingWords = [...fallingWords, newPowerup];
-  }
-  
-  function updateFallingWords() {
+}
+function updateFallingWords() {
     fallingWords = fallingWords.map(word => ({
-      ...word,
-      y: word.y + word.speed
+        ...word,
+        y: word.y + word.speed
     })).filter(word => {
-      // Remove words that reached the bottom
-      if (word.y >= 500) { // Assuming game area height is 500px
-        if (word.type === 'negative') {
-          // Game over if negative word reaches bottom
-          if (!shieldActive) {
-            endImanDefenderGame();
+        // Remove words that reached the bottom
+        if (word.y >= 500) { // Assuming game area height is 500px
+            if (word.type === 'negative') {
+                // Game over if negative word reaches bottom
+                if (!shieldActive) {
+                    endImanDefenderGame();
+                    return false;
+                }
+                else {
+                    // Shield protects from one miss
+                    shieldActive = false;
+                }
+            }
             return false;
-          } else {
-            // Shield protects from one miss
-            shieldActive = false;
-          }
         }
-        return false;
-      }
-      return true;
+        return true;
     });
-  }
-  
-  function updatePowerups() {
+}
+function updatePowerups() {
     const now = Date.now();
     activePowerups = activePowerups.filter(powerup => {
-      return now - powerup.startTime < powerup.duration;
+        return now - powerup.startTime < powerup.duration;
     });
-    
     // Update effects
     pointMultiplier = activePowerups.some(p => p.effect === 'doublePoints') ? 2 : 1;
     shieldActive = activePowerups.some(p => p.effect === 'shield');
-  }
-  
-  function calculateScore() {
+}
+function calculateScore() {
     const scoring = newGameContent.imanDefender.scoring;
     let score = hits * scoring.correctHit * pointMultiplier;
     score += Math.floor(survivalTime / 1000) * scoring.survivalBonus;
     score += Math.floor(consecutiveHits / 5) * scoring.accuracyBonus;
     return score;
-  }
-  
-  function handleRighteousConceptClick(concept) {
-    if (!gameRunning || cannonFiring) return;
-    
+}
+function handleRighteousConceptClick(concept) {
+    if (!gameRunning || cannonFiring)
+        return;
     // Find the closest falling negative word
     const negativeWords = fallingWords.filter(w => w.type === 'negative');
-    if (negativeWords.length === 0) return;
-    
+    if (negativeWords.length === 0)
+        return;
     const closestWord = negativeWords.reduce((closest, word) => {
-      return word.y > closest.y ? word : closest;
+        return word.y > closest.y ? word : closest;
     });
-    
     // Check if correct answer
     if (concept === closestWord.correctAnswer) {
-      fireCannonAtWord(closestWord, true);
-      hits++;
-      consecutiveHits++;
-    } else {
-      fireCannonAtWord(closestWord, false);
-      misses++;
-      consecutiveHits = 0;
+        fireCannonAtWord(closestWord, true);
+        hits++;
+        consecutiveHits++;
     }
-    
+    else {
+        fireCannonAtWord(closestWord, false);
+        misses++;
+        consecutiveHits = 0;
+    }
     // Update accuracy
     accuracy = hits / (hits + misses);
-    
     // Generate new concepts for next word
     generateRighteousConcepts();
-  }
-  
-  function fireCannonAtWord(word, isCorrect) {
+}
+function fireCannonAtWord(word, isCorrect) {
     cannonFiring = true;
-    
     // Visual cannon firing effect
     setTimeout(() => {
-      if (isCorrect) {
-        // Remove the word (successful hit)
-        fallingWords = fallingWords.filter(w => w.id !== word.id);
-        
-        // Add points and effects
-        const points = newGameContent.imanDefender.scoring.correctHit * pointMultiplier;
-        totalPoints += points;
-      }
-      cannonFiring = false;
+        if (isCorrect) {
+            // Remove the word (successful hit)
+            fallingWords = fallingWords.filter(w => w.id !== word.id);
+            // Add points and effects
+            const points = newGameContent.imanDefender.scoring.correctHit * pointMultiplier;
+            totalPoints += points;
+        }
+        cannonFiring = false;
     }, 300);
-  }
-  
-  function handlePowerupClick(powerup) {
-    if (!gameRunning) return;
-    
+}
+function handlePowerupClick(powerup) {
+    if (!gameRunning)
+        return;
     // Remove powerup from falling words
     fallingWords = fallingWords.filter(w => w.id !== powerup.id);
-    
     // Activate powerup effect
     activatePowerup(powerup);
-    
     // Add powerup points
     const points = newGameContent.imanDefender.scoring.powerupBonus * pointMultiplier;
     totalPoints += points;
-  }
-  
-  function activatePowerup(powerup) {
+}
+function activatePowerup(powerup) {
     const now = Date.now();
-    
     switch (powerup.effect) {
-      case 'slowMotion':
-        gameSpeed *= 0.5;
-        setTimeout(() => {
-          gameSpeed = newGameContent.imanDefender.difficulty.baseSpeed;
-        }, powerup.duration);
-        break;
-        
-      case 'clearAll':
-        fallingWords = fallingWords.filter(w => w.type !== 'negative');
-        break;
-        
-      case 'shield':
-      case 'highlight':
-      case 'doublePoints':
-        activePowerups.push({
-          ...powerup,
-          startTime: now
-        });
-        break;
+        case 'slowMotion':
+            gameSpeed *= 0.5;
+            setTimeout(() => {
+                gameSpeed = newGameContent.imanDefender.difficulty.baseSpeed;
+            }, powerup.duration);
+            break;
+        case 'clearAll':
+            fallingWords = fallingWords.filter(w => w.type !== 'negative');
+            break;
+        case 'shield':
+        case 'highlight':
+        case 'doublePoints':
+            activePowerups.push({
+                ...powerup,
+                startTime: now
+            });
+            break;
     }
-  }
-  
-  function endImanDefenderGame() {
+}
+function endImanDefenderGame() {
     gameRunning = false;
     imanDefenderActive = false;
-    
     if (gameLoop) {
-      clearInterval(gameLoop);
-      gameLoop = null;
-    }
-    
-    // Show game over screen
-    currentScreen = 'gameComplete';
-  }
-  
-  function pauseImanDefender() {
-    gameRunning = !gameRunning;
-    if (gameRunning) {
-      startImanDefenderLoop();
-    } else if (gameLoop) {
-      clearInterval(gameLoop);
-      gameLoop = null;
-    }
-  }
-  
-  function pauseGame() {
-    gamePaused = !gamePaused;
-    
-    // For Iman Defender, use the existing specific pause function
-    if (currentGame?.id === 'imanDefender') {
-      pauseImanDefender();
-      return;
-    }
-    
-    // For other games, handle pause state
-    if (gamePaused) {
-      // Game is now paused - stop any timers if they exist
-      if (gameLoop) {
         clearInterval(gameLoop);
         gameLoop = null;
-      }
-    } else {
-      // Game is resumed - restart timers if needed
-      // This can be extended based on specific game needs
     }
-  }
+    // Show game over screen
+    currentScreen = 'gameComplete';
+}
+function pauseImanDefender() {
+    gameRunning = !gameRunning;
+    if (gameRunning) {
+        startImanDefenderLoop();
+    }
+    else if (gameLoop) {
+        clearInterval(gameLoop);
+        gameLoop = null;
+    }
+}
+function pauseGame() {
+    gamePaused = !gamePaused;
+    // For Iman Defender, use the existing specific pause function
+    if (currentGame?.id === 'imanDefender') {
+        pauseImanDefender();
+        return;
+    }
+    // For other games, handle pause state
+    if (gamePaused) {
+        // Game is now paused - stop any timers if they exist
+        if (gameLoop) {
+            clearInterval(gameLoop);
+            gameLoop = null;
+        }
+    }
+    else {
+        // Game is resumed - restart timers if needed
+        // This can be extended based on specific game needs
+    }
+}
 </script>
 
 {#if currentScreen === 'home'}
@@ -3214,4 +3074,3 @@
 
 <!-- PWA Install Prompt -->
 <InstallPrompt />
-

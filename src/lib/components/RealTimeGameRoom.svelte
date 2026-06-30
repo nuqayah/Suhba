@@ -1,4 +1,4 @@
-<script lang="ts">
+<script>
   import { onMount, onDestroy } from 'svelte';
   import { 
     enhancedWsManager, 
@@ -12,17 +12,13 @@
   import { Users, Crown, Wifi, WifiOff, Clock, Trophy, Play, Settings } from 'lucide-svelte';
   import Button from './Button.svelte';
 
-  let { roomCode, gameType, onGameEnd } = $props<{
-    roomCode: string;
-    gameType: string;
-    onGameEnd: () => void;
-  }>();
+  let { roomCode, gameType, onGameEnd } = $props();
 
   let timeRemaining = $state(0);
   let currentQuestion = $state(null);
   let selectedAnswer = $state(null);
   let showResults = $state(false);
-  let gameTimer: number | null = null;
+  let gameTimer = null;
 
   $effect(() => {
     if ($currentRoom?.gameState.phase === 'question') {
@@ -61,7 +57,7 @@
     gameTimer = setInterval(() => {
       timeRemaining--;
       if (timeRemaining <= 0) {
-        clearInterval(gameTimer!);
+        clearInterval(gameTimer);
         gameTimer = null;
         submitAnswer();
       }
@@ -89,7 +85,7 @@
     onGameEnd();
   }
 
-  function getConnectionIcon(quality: any) {
+  function getConnectionIcon(quality) {
     switch (quality) {
       case 'excellent':
       case 'good': return Wifi;
@@ -99,7 +95,7 @@
     }
   }
 
-  function getConnectionColor(quality: any) {
+  function getConnectionColor(quality) {
     switch (quality) {
       case 'excellent': return 'text-green-500';
       case 'good': return 'text-yellow-500';
@@ -108,6 +104,8 @@
       default: return 'text-gray-500';
     }
   }
+
+  const ConnectionIcon = $derived(getConnectionIcon($connectionState.quality));
 </script>
 
 <div class="min-h-screen bg-gradient-to-br from-amber-50 to-orange-100 p-4">
@@ -122,8 +120,7 @@
     
     <!-- Connection indicator -->
     <div class="flex items-center gap-2">
-      <svelte:component 
-        this={getConnectionIcon($connectionState.quality)} 
+      <ConnectionIcon
         size={16} 
         class={getConnectionColor($connectionState.quality)}  
       />

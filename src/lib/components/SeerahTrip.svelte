@@ -1,4 +1,4 @@
-<script lang="ts">
+<script>
   import { onMount } from 'svelte';
   import { 
     Play, Pause, Book, Star, Crown, Heart, Shield, 

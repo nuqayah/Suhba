@@ -1,20 +1,13 @@
-<script lang="ts">
+<script>
   import { onMount } from 'svelte';
   import { CheckCircle, XCircle, AlertCircle, Info } from 'lucide-svelte';
-
-  interface ToastProps {
-    message: string;
-    type?: 'success' | 'error' | 'warning' | 'info';
-    duration?: number;
-    onClose?: () => void;
-  }
 
   let {
     message,
     type = 'info',
     duration = 4000,
     onClose
-  }: ToastProps = $props();
+  } = $props();
 
   let visible = $state(true);
 
@@ -46,7 +39,7 @@
     }
   });
 
-  const Icon = icons[type];
+  const Icon = $derived(icons[type]);
 </script>
 
 {#if visible}

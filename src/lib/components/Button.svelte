@@ -1,16 +1,4 @@
-<script lang="ts">
-  interface ButtonProps {
-    variant?: 'primary' | 'secondary' | 'glass' | 'theme';
-    size?: 'sm' | 'md' | 'lg';
-    disabled?: boolean;
-    loading?: boolean;
-    onclick?: () => void;
-    onkeydown?: (e: KeyboardEvent) => void;
-    class?: string;
-    ariaLabel?: string;
-    type?: 'button' | 'submit' | 'reset';
-    children?: any;
-  }
+<script>
 
   let {
     variant = 'primary',
@@ -23,7 +11,7 @@
     ariaLabel,
     type = 'button',
     children
-  }: ButtonProps = $props();
+  } = $props();
 
   const baseClasses = 'relative overflow-hidden font-semibold rounded-3xl focus-ring-improved smooth-transition touch-target interactive-card';
   
@@ -46,7 +34,7 @@
     }
   }
 
-  function handleKeydown(e: KeyboardEvent) {
+  function handleKeydown(e) {
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
       handleClick();

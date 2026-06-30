@@ -1,12 +1,8 @@
-<script lang="ts">
+<script>
   import { connectionState } from '$lib/stores/enhancedWebsocket';
   import { Wifi, WifiOff, AlertCircle, CheckCircle, Loader } from 'lucide-svelte';
 
-  let { position = 'top-right', size = 'md', showDetails = false } = $props<{
-    position?: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
-    size?: 'sm' | 'md' | 'lg';
-    showDetails?: boolean;
-  }>();
+  let { position = 'top-right', size = 'md', showDetails = false } = $props();
 
   function getPositionClasses() {
     switch (position) {
@@ -27,7 +23,7 @@
     }
   }
 
-  function getStatusIcon(state: typeof $connectionState) {
+  function getStatusIcon(state) {
     if (state.connecting || state.reconnecting) return Loader;
     if (state.connected) {
       switch (state.quality) {
@@ -41,7 +37,7 @@
     return WifiOff;
   }
 
-  function getStatusColor(state: typeof $connectionState) {
+  function getStatusColor(state) {
     if (state.connecting || state.reconnecting) return 'text-blue-500 bg-blue-100';
     if (state.connected) {
       switch (state.quality) {
@@ -55,7 +51,7 @@
     return 'text-red-500 bg-red-100';
   }
 
-  function getStatusText(state: typeof $connectionState) {
+  function getStatusText(state) {
     if (state.connecting) return 'Connecting to Suhba...';
     if (state.reconnecting) return 'Reconnecting...';
     if (state.connected) {
@@ -69,6 +65,8 @@
     }
     return state.error || 'Disconnected';
   }
+
+  const StatusIcon = $derived(getStatusIcon($connectionState));
 </script>
 
 <!-- Connection Status Indicator -->
@@ -86,8 +84,7 @@
       transition-all duration-200
       {$connectionState.connecting || $connectionState.reconnecting ? 'animate-pulse' : ''}
     ">
-      <svelte:component 
-        this={getStatusIcon($connectionState)} 
+      <StatusIcon
         size={size === 'sm' ? 12 : size === 'lg' ? 20 : 16}
         class={$connectionState.connecting || $connectionState.reconnecting ? 'animate-spin' : ''}
       />

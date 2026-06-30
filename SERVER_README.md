@@ -25,31 +25,31 @@ poetry install
 ### 2. Install Node.js Dependencies
 
 ```bash
-# Install npm dependencies (includes concurrently for running both frontend and backend)
-npm install
+# Install Node dependencies (includes concurrently for running both frontend and backend)
+pnpm install
 ```
 
 ### 3. Development Scripts
 
 ```bash
 # Run only the backend
-npm run backend:dev
+pnpm backend:dev
 
 # Run only the frontend
-npm run dev
+pnpm dev
 
 # Run both frontend and backend simultaneously
-npm run full:dev
+pnpm full:dev
 ```
 
 ### 4. Production Scripts
 
 ```bash
 # Build frontend
-npm run build
+pnpm build
 
 # Run backend in production
-npm run backend
+pnpm backend
 ```
 
 ## Backend API
@@ -95,7 +95,7 @@ Currently supported quiz types:
 The backend is integrated with Suhba's existing game modes:
 - **Solo Play**: Existing local gameplay (unchanged)
 - **Suhba Mode**: Enhanced with real-time multiplayer capabilities
-- **WebSocket Store**: `src/lib/stores/websocket.ts` manages backend communication
+- **WebSocket Store**: `src/lib/stores/websocket.js` manages backend communication
 
 ## Data Files
 

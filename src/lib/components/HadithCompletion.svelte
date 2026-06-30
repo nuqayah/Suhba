@@ -1,14 +1,9 @@
-<script lang="ts">
+<script>
   import { BookOpen, User, CheckCircle, Clock, Star, ArrowRight } from 'lucide-svelte';
   import { currentLanguage } from '$lib/stores/language';
   import { translations } from '$lib/stores/translations';
 
-  let { currentTheme, gameQuestions = [], players = [], onGameEnd } = $props<{
-    currentTheme: any;
-    gameQuestions: any[];
-    players: any[];
-    onGameEnd: (results: any) => void;
-  }>();
+  let { currentTheme, gameQuestions = [], players = [], onGameEnd } = $props();
 
   const t = $derived(translations[$currentLanguage.code]);
 
@@ -208,7 +203,7 @@
 
   const getCurrentPlayer = () => players[currentPlayerIndex];
   
-  const scoreColor = (score: number, maxScore: number) => {
+  const scoreColor = (score, maxScore) => {
     const percentage = score / maxScore;
     if (percentage >= 0.8) return 'text-green-600';
     if (percentage >= 0.6) return 'text-yellow-600';
@@ -288,8 +283,9 @@
 
       <!-- Answer Input -->
       <div class="mb-6">
-        <label class="block font-bold {currentTheme.text} mb-3">Your Answer:</label>
+        <label for="hadith-answer" class="block font-bold {currentTheme.text} mb-3">Your Answer:</label>
         <textarea
+          id="hadith-answer"
           bind:value={currentAnswer}
           placeholder="Complete the hadith with the missing words..."
           class="w-full p-4 border-2 border-gray-300 rounded-xl focus:border-green-500 focus:outline-none resize-none"

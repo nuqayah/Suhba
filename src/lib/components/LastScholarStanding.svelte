@@ -1,14 +1,9 @@
-<script lang="ts">
+<script>
   import { Crown, Shield, Star, Users, Zap, Heart, X } from 'lucide-svelte';
   import { currentLanguage } from '$lib/stores/language';
   import { translations } from '$lib/stores/translations';
 
-  let { currentTheme, gameQuestions = [], players = [], onGameEnd } = $props<{
-    currentTheme: any;
-    gameQuestions: any[];
-    players: any[];
-    onGameEnd: (winner: any) => void;
-  }>();
+  let { currentTheme, gameQuestions = [], players = [], onGameEnd } = $props();
 
   const t = $derived(translations[$currentLanguage.code]);
 
@@ -61,7 +56,7 @@
     }, 1000);
   }
 
-  function submitAnswer(playerId: number, answerIndex: number) {
+  function submitAnswer(playerId, answerIndex) {
     if (gamePhase !== 'answering') return;
     playerAnswers[playerId] = answerIndex;
     
@@ -114,7 +109,7 @@
     }
   }
 
-  function usePowerUp(playerId: number, powerUpType: string) {
+  function usePowerUp(playerId, powerUpType) {
     const player = activePlayers.find(p => p.id === playerId);
     if (!player || !player.powerUps.includes(powerUpType)) return;
     
@@ -134,7 +129,7 @@
     }
   }
 
-  const difficultyColor = $derived(() => {
+  const difficultyColor = $derived.by(() => {
     switch (currentQuestion?.difficulty) {
       case 'easy': return 'bg-green-500';
       case 'medium': return 'bg-yellow-500';

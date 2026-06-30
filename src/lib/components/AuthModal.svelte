@@ -1,17 +1,14 @@
-<script lang="ts">
+<script>
   import { currentLanguage } from '$lib/stores/language';
   import { translations } from '$lib/stores/translations';
   import { User, X, Mail, Phone, Chrome } from 'lucide-svelte';
   
-  let { isOpen = false, onClose } = $props<{
-    isOpen?: boolean;
-    onClose: () => void;
-  }>();
+  let { isOpen = false, onClose } = $props();
   
   const t = $derived(translations[$currentLanguage.code]);
   
-  let authMode = $state<'login' | 'signup'>('login');
-  let loginMethod = $state<'google' | 'email' | 'phone'>('google');
+  let authMode = $state('login');
+  let loginMethod = $state('google');
   let email = $state('');
   let phone = $state('');
   let password = $state('');

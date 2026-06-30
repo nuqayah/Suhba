@@ -1,18 +1,12 @@
-<script lang="ts">
+<script>
   import { connectionState } from '$lib/stores/websocket';
   import { Wifi, WifiOff, RotateCw } from 'lucide-svelte';
-
-  interface ConnectionStatusProps {
-    position?: 'top-right' | 'top-left' | 'bottom-right' | 'bottom-left' | 'inline';
-    size?: 'sm' | 'md' | 'lg';
-    showText?: boolean;
-  }
 
   let {
     position = 'top-right',
     size = 'md',
     showText = false
-  }: ConnectionStatusProps = $props();
+  } = $props();
 
   const positionClasses = {
     'top-right': 'fixed top-4 right-4 z-50',
@@ -34,20 +28,20 @@
     lg: 'w-5 h-5'
   };
 
-  function getStatusText(state: typeof $connectionState) {
+  function getStatusText(state) {
     if (state.connecting) return 'Connecting...';
     if (state.connected) return 'Connected';
     if (state.error) return state.error;
     return 'Disconnected';
   }
 
-  function getStatusColor(state: typeof $connectionState) {
+  function getStatusColor(state) {
     if (state.connecting) return 'bg-amber-500/90 border-amber-400';
     if (state.connected) return 'bg-green-500/90 border-green-400';
     return 'bg-red-500/90 border-red-400';
   }
 
-  function getIcon(state: typeof $connectionState) {
+  function getIcon(state) {
     if (state.connecting) return RotateCw;
     if (state.connected) return Wifi;
     return WifiOff;

@@ -1,31 +1,26 @@
-<script lang="ts">
-  import { currentLanguage, languages, type Language } from '$lib/stores/language';
+<script>
+  import { currentLanguage, languages } from '$lib/stores/language';
   import { translations } from '$lib/stores/translations';
   import { Settings, X, Globe, Palette } from 'lucide-svelte';
   import { onMount } from 'svelte';
   
-  let modalElement = $state<HTMLElement>();
+  let modalElement = $state();
   
-  let { isOpen = false, onClose, currentTheme = 'desert', onThemeChange } = $props<{
-    isOpen?: boolean;
-    onClose: () => void;
-    currentTheme?: string;
-    onThemeChange: (theme: string) => void;
-  }>();
+  let { isOpen = false, onClose, currentTheme = 'desert', onThemeChange } = $props();
   
   const t = $derived(translations[$currentLanguage.code]);
   
-  function handleLanguageChange(lang: Language) {
+  function handleLanguageChange(lang) {
     currentLanguage.setLanguage(lang);
   }
   
-  function handleKeydown(e: KeyboardEvent) {
+  function handleKeydown(e) {
     if (e.key === 'Escape') {
       onClose();
     }
   }
   
-  function handleBackdropClick(e: MouseEvent) {
+  function handleBackdropClick(e) {
     if (e.target === e.currentTarget) {
       onClose();
     }
@@ -37,10 +32,10 @@
       const focusableElements = modalElement.querySelectorAll(
         'button, [href], [tabindex]:not([tabindex="-1"])'
       );
-      const firstElement = focusableElements[0] as HTMLElement;
-      const lastElement = focusableElements[focusableElements.length - 1] as HTMLElement;
+      const firstElement = focusableElements[0];
+      const lastElement = focusableElements[focusableElements.length - 1];
       
-      function trapFocus(e: KeyboardEvent) {
+      function trapFocus(e) {
         if (e.key === 'Tab') {
           if (e.shiftKey) {
             if (document.activeElement === firstElement) {

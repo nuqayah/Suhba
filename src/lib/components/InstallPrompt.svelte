@@ -1,4 +1,4 @@
-<script lang="ts">
+<script>
   import { onMount } from 'svelte';
   import { showInstallPrompt, getInstallInstructions, isPWA } from '$lib/pwa';
   import { Download, X, Smartphone } from 'lucide-svelte';

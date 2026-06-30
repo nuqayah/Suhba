@@ -1,23 +1,19 @@
-<script lang="ts">
+<script>
   import { currentLanguage } from '$lib/stores/language';
   import { translations } from '$lib/stores/translations';
   import { newGameContent } from '$lib/gameContent';
   import { Star, Check, RotateCcw } from 'lucide-svelte';
   
-  let { currentTheme, onScore, onNext } = $props<{
-    currentTheme: any;
-    onScore: () => void;
-    onNext: () => void;
-  }>();
+  let { currentTheme, onScore, onNext } = $props();
   
   const t = $derived(translations[$currentLanguage.code]);
   
   let gameData = newGameContent.meccanMedinan[0];
-  let shuffledSurahs = [...gameData.surahs].sort(() => Math.random() - 0.5);
-  let meccanDropped = [];
-  let medinanDropped = [];
-  let showResult = false;
-  let draggedItem = null;
+  let shuffledSurahs = $state([...gameData.surahs].sort(() => Math.random() - 0.5));
+  let meccanDropped = $state([]);
+  let medinanDropped = $state([]);
+  let showResult = $state(false);
+  let draggedItem = $state(null);
   
   function handleDragStart(event, surah) {
     draggedItem = surah;

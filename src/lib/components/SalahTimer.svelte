@@ -1,4 +1,4 @@
-<script lang="ts">
+<script>
   import { onMount, onDestroy } from 'svelte';
   import { salahStore } from '$lib/stores/salah';
   import { currentLanguage } from '$lib/stores/language';
